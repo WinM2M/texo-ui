@@ -2,7 +2,8 @@ import type { ASTNode, RootNode } from '@texo/core';
 import React from 'react';
 import { defaultRenderers, hasChildren } from './default-renderers';
 import { DirectiveRenderer } from './directive-renderer';
-import type { ComponentRegistry, FallbackProps } from './types';
+import type { ComponentRegistry } from '../registry';
+import type { FallbackProps } from './types';
 
 function renderNode(
   node: ASTNode,

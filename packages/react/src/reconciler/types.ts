@@ -1,5 +1,6 @@
 import type { ASTNode } from '@texo/core';
 import type React from 'react';
+import type { ComponentRegistry } from '../registry';
 
 export interface FallbackProps {
   node: ASTNode;
@@ -14,8 +15,4 @@ export interface DirectiveRendererProps {
 export interface NodeRendererProps {
   node: ASTNode;
   children?: React.ReactNode;
-}
-
-export interface ComponentRegistry {
-  get(name: string): React.ComponentType<Record<string, unknown>> | undefined;
 }
