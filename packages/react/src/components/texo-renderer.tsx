@@ -1,4 +1,4 @@
-import type { RecoveryEvent, RootNode } from '@texo/core';
+import type { RecoveryEvent, RootNode } from '@texo-ui/core';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useTexoAction } from '../hooks';
 import { useTexoStream } from '../hooks/use-texo-stream';

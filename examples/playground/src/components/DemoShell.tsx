@@ -1,6 +1,6 @@
-import type { RootNode } from '@texo/core';
-import { TexoPipeline, type RecoveryEvent } from '@texo/core';
-import { TexoRenderer, createRegistry, type TexoAction } from '@texo/react';
+import type { RootNode } from '@texo-ui/core';
+import { TexoPipeline, type RecoveryEvent } from '@texo-ui/core';
+import { TexoRenderer, createRegistry, type TexoAction } from '@texo-ui/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ApiRequestForm,

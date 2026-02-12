@@ -1,5 +1,5 @@
 {
-  "name": "@texo/core",
+  "name": "@texo-ui/core",
   "version": "0.0.1",
   "description": "Streaming Markdown/YAML parser for Texo",
   "type": "module",

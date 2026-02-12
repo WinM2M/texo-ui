@@ -1,6 +1,6 @@
 import React from 'react';
-import { TexoRenderer, createRegistry, type TexoAction } from '@texo/react';
-import type { RecoveryEvent } from '@texo/core';
+import { TexoRenderer, createRegistry, type TexoAction } from '@texo-ui/react';
+import type { RecoveryEvent } from '@texo-ui/core';
 import { wrapVanillaComponent, type ComponentRenderFunction } from './adapters/vanilla-adapter';
 import { TexoEventBus } from './event-bus';
 import { TexoShadowHost } from './shadow-host';

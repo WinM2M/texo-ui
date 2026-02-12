@@ -13,10 +13,10 @@
     "noEmitOnError": true,
     "baseUrl": ".",
     "paths": {
-      "@texo/core": ["packages/core/src/index.ts"],
-      "@texo/react": ["packages/react/src/index.ts"],
-      "@texo/standalone": ["packages/standalone/src/index.ts"],
-      "@texo/data-adapter": ["packages/data-adapter/src/index.ts"]
+      "@texo-ui/core": ["packages/core/src/index.ts"],
+      "@texo-ui/react": ["packages/react/src/index.ts"],
+      "@texo-ui/standalone": ["packages/standalone/src/index.ts"],
+      "@texo-ui/data-adapter": ["packages/data-adapter/src/index.ts"]
     }
   }
 }

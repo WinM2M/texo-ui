@@ -15,19 +15,19 @@ We redefine software not as a pre-built "Product," but as a "Stream" generated o
 
 ## 2. Architecture & Package Structure (Monorepo)
 
-### 📦 1. `@texo/core` (The Brain)
+### 📦 1. `@texo-ui/core` (The Brain)
 * **Role:** Platform-independent parsing and state management engine.
 * **Features:** Streaming Parser, Directive Detection (`::: component`), Fault Tolerance.
 
-### 📦 2. `@texo/react` (The Renderer)
+### 📦 2. `@texo-ui/react` (The Renderer)
 * **Role:** Renderer for Web (React) environments.
 * **Features:** Reconciliation (AST to React Tree), Component Registry, Hooks (`useTexoStream`).
 
-### 📦 3. `@texo/standalone` (The Drop-in Widget)
+### 📦 3. `@texo-ui/standalone` (The Drop-in Widget)
 * **Role:** CDN-ready bundle for use via a single `script` tag.
 * **Features:** All-in-One Bundle (React+Core), Global API (`window.Texo`), Shadow DOM isolation.
 
-### 📦 4. `@texo/data-adapter` (The Connector)
+### 📦 4. `@texo-ui/data-adapter` (The Connector)
 * **Role:** Middleware between UI and Data Storage.
 * **Drivers:** `LocalStorageDriver`, `GoogleDriveDriver` (AppData folder), `NotionDriver`, `RemoteHttpDriver`.
 
@@ -98,23 +98,23 @@ The **Texo Playground** will serve as the primary showcase, demonstrating the fr
 4.  **BYOS Expense Tracker (Google Drive Demo):**
     * *Concept:* Serverless app connected to user's cloud.
     * *Component:* `::: expense-list { source: 'google-drive' }`
-    * *Tech:* Uses `@texo/data-adapter` to read/write `expenses.json` in user's GDrive.
+    * *Tech:* Uses `@texo-ui/data-adapter` to read/write `expenses.json` in user's GDrive.
 
 ---
 
 ## 4. Implementation Roadmap
 
-### Phase 1: Core Foundation (`@texo/core`, `@texo/react`)
+### Phase 1: Core Foundation (`@texo-ui/core`, `@texo-ui/react`)
 1.  **Parser:** Implement streaming-friendly markdown parser (state machine).
 2.  **Reconciler:** Map AST nodes to React components.
 3.  **Fallback:** Error boundary implementation.
 
-### Phase 2: Accessibility (`@texo/standalone`)
+### Phase 2: Accessibility (`@texo-ui/standalone`)
 1.  **Bundling:** Single-file build (`texo.min.js`) via Vite/Rollup.
 2.  **Shadow DOM:** Style isolation logic.
 3.  **Event Bus:** External script communication bridge.
 
-### Phase 3: Intelligence & Storage (`@texo/data-adapter`)
+### Phase 3: Intelligence & Storage (`@texo-ui/data-adapter`)
 1.  **Driver Interface:** Define CRUD interface.
 2.  **Implement Drivers:** `LocalStorage` and `GoogleDrive` (OAuth flow).
 
@@ -134,6 +134,6 @@ The **Texo Playground** will serve as the primary showcase, demonstrating the fr
 
 ## 6. Deliverables
 
-1.  **NPM Packages:** `@texo/core`, `@texo/react`, `@texo/standalone`, `@texo/data-adapter`.
+1.  **NPM Packages:** `@texo-ui/core`, `@texo-ui/react`, `@texo-ui/standalone`, `@texo-ui/data-adapter`.
 2.  **Source Code:** Monorepo with `examples/playground`.
 3.  **Live Demo:** A web page demonstrating all 13 use cases listed above, with a working Google Drive integration.

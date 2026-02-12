@@ -1,5 +1,5 @@
 {
-  "name": "@texo/playground",
+  "name": "@texo-ui/playground",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -10,9 +10,9 @@
     "serve": "vite build && npx serve dist -s -l 3000"
   },
   "dependencies": {
-    "@texo/core": "^0.0.1",
-    "@texo/data-adapter": "^0.0.1",
-    "@texo/react": "^0.0.1",
+    "@texo-ui/core": "^0.0.1",
+    "@texo-ui/data-adapter": "^0.0.1",
+    "@texo-ui/react": "^0.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1"

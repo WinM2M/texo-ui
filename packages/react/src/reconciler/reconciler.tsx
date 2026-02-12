@@ -1,4 +1,4 @@
-import type { ASTNode, RootNode } from '@texo/core';
+import type { ASTNode, RootNode } from '@texo-ui/core';
 import React from 'react';
 import { defaultRenderers, hasChildren } from './default-renderers';
 import { DirectiveRenderer } from './directive-renderer';

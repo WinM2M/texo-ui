@@ -1,5 +1,5 @@
 {
-  "name": "@texo/react",
+  "name": "@texo-ui/react",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.cjs",
@@ -15,7 +15,7 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@texo/core": "^0.0.1"
+    "@texo-ui/core": "^0.0.1"
   },
   "publishConfig": {
     "access": "public"

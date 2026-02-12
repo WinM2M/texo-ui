@@ -1,4 +1,4 @@
-import type { RootNode } from '@texo/core';
+import type { RootNode } from '@texo-ui/core';
 import React from 'react';
 
 export interface ErrorFallbackProps {

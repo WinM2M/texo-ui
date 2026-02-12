@@ -7,7 +7,7 @@ import type {
   LinkNode,
   ListNode,
   TextNode,
-} from '@texo/core';
+} from '@texo-ui/core';
 import React from 'react';
 import type { NodeRendererProps } from './types';
 

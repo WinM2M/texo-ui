@@ -1,5 +1,5 @@
-import type { RecoveryEvent, RootNode } from '@texo/core';
-import { TexoPipeline } from '@texo/core';
+import type { RecoveryEvent, RootNode } from '@texo-ui/core';
+import { TexoPipeline } from '@texo-ui/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { UseTexoStreamOptions, UseTexoStreamReturn } from '../types';
 

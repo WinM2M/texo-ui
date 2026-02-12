@@ -1,4 +1,4 @@
-import type { ASTNode } from '@texo/core';
+import type { ASTNode } from '@texo-ui/core';
 import type React from 'react';
 import type { ComponentRegistry } from '../registry';
 

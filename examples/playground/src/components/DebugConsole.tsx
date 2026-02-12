@@ -1,5 +1,5 @@
-import type { RootNode, RecoveryEvent } from '@texo/core';
-import type { TexoAction } from '@texo/react';
+import type { RootNode, RecoveryEvent } from '@texo-ui/core';
+import type { TexoAction } from '@texo-ui/react';
 
 export function DebugConsole({
   ast,

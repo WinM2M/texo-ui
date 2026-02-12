@@ -8,7 +8,7 @@ export function LandingPage(): JSX.Element {
         <p>Stream-first generative UI demos across Casual, Pro, and Data scenarios.</p>
       </header>
       <div className="architecture">
-        <pre>{`LLM Stream -> @texo/core Parser -> AST -> @texo/react Renderer -> Interactive UI`}</pre>
+        <pre>{`LLM Stream -> @texo-ui/core Parser -> AST -> @texo-ui/react Renderer -> Interactive UI`}</pre>
       </div>
       <div className="category-cards">
         <Link to="/casual" className="category-card casual">

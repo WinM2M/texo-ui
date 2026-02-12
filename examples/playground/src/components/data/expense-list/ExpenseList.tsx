@@ -6,7 +6,7 @@ import {
   StorageError,
   StorageErrorCode,
   type StorageItem,
-} from '@texo/data-adapter';
+} from '@texo-ui/data-adapter';
 import type { DirectiveComponentProps } from '../../shared';
 import { useDirectiveAction } from '../../shared';
 import type { ExpenseListAttributes } from './types';

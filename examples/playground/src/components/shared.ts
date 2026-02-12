@@ -1,4 +1,4 @@
-import { useTexoContext } from '@texo/react';
+import { useTexoContext } from '@texo-ui/react';
 
 export interface TexoAction {
   type: string;

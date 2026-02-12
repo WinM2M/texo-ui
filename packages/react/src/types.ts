@@ -1,4 +1,4 @@
-import type { RecoveryEvent, RecoveryConfig, RootNode } from '@texo/core';
+import type { RecoveryEvent, RecoveryConfig, RootNode } from '@texo-ui/core';
 
 export interface TexoAction {
   type: string;

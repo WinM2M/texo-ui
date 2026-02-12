@@ -17,7 +17,7 @@ It is platform-agnostic, supporting **React (Web)**, **React Native (Mobile)**, 
 
 - **Stream-First:** Renders UI incrementally as the LLM types, without waiting for a complete JSON object.
 - **Fault Tolerant:** If the syntax breaks, it gracefully degrades to text/code blocks. No white screens.
-- **Platform Agnostic:** Write the parser once (`@texo/core`), render anywhere (`@texo/react`, `@texo/native`).
+- **Platform Agnostic:** Write the parser once (`@texo-ui/core`), render anywhere (`@texo-ui/react`, `@texo-ui/native`).
 - **Drop-in Ready:** Use it on WordPress, jQuery sites, or raw HTML via CDN without a build step.
 - **Developer Control:** You define the components; the LLM just invokes them.
 
@@ -61,7 +61,7 @@ data:
 ### 2. Integration: React (Modern Web)
 
 ```jsx
-import { TexoRenderer } from '@texo/react';
+import { TexoRenderer } from '@texo-ui/react';
 import { StatsCard, DataTable } from './design-system';
 
 const registry = {
@@ -84,7 +84,7 @@ function ChatInterface({ stream }) {
 You can use Texo without a build step (like webpack/vite). Just drop a script tag.
 
 ```html
-<script src="[https://cdn.jsdelivr.net/npm/@texo/standalone@latest/dist/texo.min.js](https://cdn.jsdelivr.net/npm/@texo/standalone@latest/dist/texo.min.js)"></script>
+<script src="[https://cdn.jsdelivr.net/npm/@texo-ui/standalone@latest/dist/texo.min.js](https://cdn.jsdelivr.net/npm/@texo-ui/standalone@latest/dist/texo.min.js)"></script>
 
 <div id="texo-root"></div>
 
@@ -114,10 +114,10 @@ You can use Texo without a build step (like webpack/vite). Just drop a script ta
 ```text
 texo/
 ├── packages/
-│   ├── core/           # @texo/core (Parser & AST)
-│   ├── react/          # @texo/react (Web Renderer)
-│   ├── native/         # @texo/native (React Native Renderer)
-│   └── standalone/     # @texo/standalone (CDN Bundle)
+│   ├── core/           # @texo-ui/core (Parser & AST)
+│   ├── react/          # @texo-ui/react (Web Renderer)
+│   ├── native/         # @texo-ui/native (React Native Renderer)
+│   └── standalone/     # @texo-ui/standalone (CDN Bundle)
 ├── examples/           # Demo Projects
 ├── package.json        # Monorepo Root
 └── README.md
@@ -125,10 +125,10 @@ texo/
 
 ## Roadmap
 
-- [ ] **@texo/core**: Streaming Markdown/YAML parser implementation.
-- [ ] **@texo/react**: React reconciler and hooks.
-- [ ] **@texo/native**: React Native adapter.
-- [ ] **@texo/standalone**: Pre-bundled version for CDN usage.
+- [ ] **@texo-ui/core**: Streaming Markdown/YAML parser implementation.
+- [ ] **@texo-ui/react**: React reconciler and hooks.
+- [ ] **@texo-ui/native**: React Native adapter.
+- [ ] **@texo-ui/standalone**: Pre-bundled version for CDN usage.
 - [ ] **Schema Generator**: Auto-generate system prompts for LLMs based on component props.
 
 ## License

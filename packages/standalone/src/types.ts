@@ -1,4 +1,4 @@
-import type { RecoveryConfig } from '@texo/core';
+import type { RecoveryConfig } from '@texo-ui/core';
 import type { ComponentRenderFunction } from './adapters/vanilla-adapter';
 
 export interface TexoInstance {
