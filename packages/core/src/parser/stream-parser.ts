@@ -1,4 +1,3 @@
-import { TextEncoder } from 'node:util';
 import type { ParserEvent, ParserOptions, Position, TextChunk } from '../types';
 import { DEFAULT_STATE, type ParserState } from './states';
 import { parseCodeFence } from './tokenizers/code-block';
@@ -12,7 +11,8 @@ function clonePosition(position: Position): Position {
 }
 
 function utf8Length(value: string): number {
-  return new TextEncoder().encode(value).length;
+  const encoder = globalThis.TextEncoder ? new globalThis.TextEncoder() : null;
+  return encoder ? encoder.encode(value).length : value.length;
 }
 
 function isHorizontalRule(line: string): boolean {

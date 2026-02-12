@@ -1,4 +1,3 @@
-import { TextDecoder, TextEncoder } from 'node:util';
 import type { ASTNode, DirectiveNode } from '../ast';
 import type { Position } from '../types';
 import { RECOVERY_MESSAGES } from './error-catalog';
@@ -33,9 +32,14 @@ const DEFAULT_CONFIG: RecoveryConfig = {
 };
 
 function utf8Slice(value: string, maxBytes: number): string {
-  const encoded = new TextEncoder().encode(value);
+  const encoder = globalThis.TextEncoder ? new globalThis.TextEncoder() : null;
+  const decoder = globalThis.TextDecoder ? new globalThis.TextDecoder() : null;
+  if (!encoder || !decoder) {
+    return value.slice(0, maxBytes);
+  }
+  const encoded = encoder.encode(value);
   const sliced = encoded.slice(0, maxBytes);
-  return new TextDecoder().decode(sliced);
+  return decoder.decode(sliced);
 }
 
 export class RecoveryManager {
@@ -63,7 +67,9 @@ export class RecoveryManager {
     }
 
     const sanitized = chunk.split('\u0000').join('');
-    if (new TextEncoder().encode(sanitized).length > this.config.maxBufferSize) {
+    const encoder = globalThis.TextEncoder ? new globalThis.TextEncoder() : null;
+    const byteLength = encoder ? encoder.encode(sanitized).length : sanitized.length;
+    if (byteLength > this.config.maxBufferSize) {
       this.report(
         'buffer-overflow',
         undefined,
