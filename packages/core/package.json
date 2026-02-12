@@ -1,0 +1,26 @@
+{
+  "name": "@texo/core",
+  "version": "0.0.1",
+  "description": "Streaming Markdown/YAML parser for Texo",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "texo",
+    "parser",
+    "streaming",
+    "llm",
+    "ui"
+  ],
+  "author": "Youngjune Kwon",
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.3.4" 
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
