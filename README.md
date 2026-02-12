@@ -11,13 +11,14 @@
 
 Unlike Vercel's `v0` or standard generative UI tools that rely on brittle JSON or raw HTML generation, Texo uses a robust, human-readable syntax (**Markdown Directives + YAML**) to "weave" UI components in real-time.
 
-It is platform-agnostic, supporting both **React (Web)** and **React Native (Mobile)**.
+It is platform-agnostic, supporting **React (Web)**, **React Native (Mobile)**, and even **Legacy Web (Standalone)** via CDN.
 
 ## Why Texo?
 
 - **Stream-First:** Renders UI incrementally as the LLM types, without waiting for a complete JSON object.
 - **Fault Tolerant:** If the syntax breaks, it gracefully degrades to text/code blocks. No white screens.
 - **Platform Agnostic:** Write the parser once (`@texo/core`), render anywhere (`@texo/react`, `@texo/native`).
+- **Drop-in Ready:** Use it on WordPress, jQuery sites, or raw HTML via CDN without a build step.
 - **Developer Control:** You define the components; the LLM just invokes them.
 
 ## Architecture
@@ -30,6 +31,7 @@ graph LR
     B -->|UI AST| C{Renderer}
     C -->|Web| D[React Components]
     C -->|Mobile| E[React Native Views]
+    C -->|CDN| F[Standalone Widget]
 ```
 
 ## Usage Preview
@@ -56,7 +58,7 @@ data:
 :::
 ```
 
-### 2. The Implementation (React)
+### 2. Integration: React (Modern Web)
 
 ```jsx
 import { TexoRenderer } from '@texo/react';
@@ -78,6 +80,35 @@ function ChatInterface({ stream }) {
 }
 ```
 
+### 3. Integration: Standalone (CDN / Legacy Web)
+You can use Texo without a build step (like webpack/vite). Just drop a script tag.
+
+```html
+<script src="[https://cdn.jsdelivr.net/npm/@texo/standalone@latest/dist/texo.min.js](https://cdn.jsdelivr.net/npm/@texo/standalone@latest/dist/texo.min.js)"></script>
+
+<div id="texo-root"></div>
+
+<script>
+  // 3. Initialize (jQuery-style)
+  const ui = Texo.init('#texo-root');
+
+  // 4. Stream data from LLM (Push text chunk by chunk)
+  llmSource.on('data', (chunk) => {
+    ui.stream(chunk); 
+  });
+
+  // 5. Handle User Interaction (Bi-directional)
+  // When user clicks a button in the generated UI, it simulates a chat input
+  ui.on('action', (payload) => {
+    console.log('User Action:', payload); 
+    // e.g. { type: 'submit', value: 'Confirm Purchase' }
+    
+    // Send back to Chat Interface or LLM
+    chatInput.value = payload.value;
+  });
+</script>
+```
+
 ## Directory Structure
 
 ```text
@@ -85,17 +116,19 @@ texo/
 ├── packages/
 │   ├── core/           # @texo/core (Parser & AST)
 │   ├── react/          # @texo/react (Web Renderer)
-│   └── native/         # @texo/native (React Native Renderer)
+│   ├── native/         # @texo/native (React Native Renderer)
+│   └── standalone/     # @texo/standalone (CDN Bundle)
 ├── examples/           # Demo Projects
 ├── package.json        # Monorepo Root
 └── README.md
 ```
 
-## 🛠 Roadmap
+## Roadmap
 
 - [ ] **@texo/core**: Streaming Markdown/YAML parser implementation.
 - [ ] **@texo/react**: React reconciler and hooks.
 - [ ] **@texo/native**: React Native adapter.
+- [ ] **@texo/standalone**: Pre-bundled version for CDN usage.
 - [ ] **Schema Generator**: Auto-generate system prompts for LLMs based on component props.
 
 ## License
