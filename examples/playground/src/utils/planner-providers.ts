@@ -1,6 +1,8 @@
+import { buildTexoStreamSystemPrompt, type TexoComponentDoc } from '@texo-ui/core';
+import { compileIntentPlanToTexo } from './intent-compiler';
 import { generateMockIntentPlan } from './mock-llm-planner';
 
-export type PlannerProviderId = 'mock' | 'openai' | 'anthropic';
+export type PlannerProviderId = 'mock' | 'openai' | 'anthropic' | 'deepseek';
 
 export interface PlannerRequest {
   prompt: string;
@@ -8,7 +10,8 @@ export interface PlannerRequest {
   apiKey?: string;
   baseUrl?: string;
   signal?: AbortSignal;
-  catalogGuide: string;
+  componentDocs: TexoComponentDoc[];
+  extraRules?: string[];
   onText: (chunk: string) => void;
 }
 
@@ -18,7 +21,7 @@ export interface PlannerProvider {
   defaultModel: string;
   requiresApiKey: boolean;
   supportsStreaming: boolean;
-  generatePlanText: (request: PlannerRequest) => Promise<string>;
+  generateTexoStreamText: (request: PlannerRequest) => Promise<string>;
 }
 
 function delay(ms: number): Promise<void> {
@@ -27,16 +30,15 @@ function delay(ms: number): Promise<void> {
   });
 }
 
-function buildSystemPrompt(catalogGuide: string): string {
-  return [
-    'You are Texo Intent Planner.',
-    'Return JSON only. No markdown fences.',
-    'Output must match IntentPlan with version="1.0" and root.type="screen".',
-    'Allowed node types: screen, stack, grid, card, text, button, input, select, table, chart.',
-    'Use only fields required by each node type and keep tree compact.',
-    'Prefer built-in components and naming aligned with this catalog:',
-    catalogGuide,
-  ].join('\n');
+function buildSystemPrompt(request: PlannerRequest): string {
+  return buildTexoStreamSystemPrompt({
+    components: request.componentDocs,
+    extraRules: [
+      'Use only listed components unless absolutely necessary.',
+      'Close every directive block with :::',
+      ...(request.extraRules ?? []),
+    ],
+  });
 }
 
 async function readSSEText(
@@ -94,14 +96,14 @@ const mockProvider: PlannerProvider = {
   defaultModel: 'mock-v1',
   requiresApiKey: false,
   supportsStreaming: true,
-  async generatePlanText(request): Promise<string> {
-    const json = JSON.stringify(generateMockIntentPlan(request.prompt), null, 2);
+  async generateTexoStreamText(request): Promise<string> {
+    const texo = compileIntentPlanToTexo(generateMockIntentPlan(request.prompt));
     let output = '';
-    for (let index = 0; index < json.length; index += 16) {
+    for (let index = 0; index < texo.length; index += 16) {
       if (request.signal?.aborted) {
         throw new DOMException('Generation cancelled', 'AbortError');
       }
-      const chunk = json.slice(index, index + 16);
+      const chunk = texo.slice(index, index + 16);
       output += chunk;
       request.onText(chunk);
       await delay(18);
@@ -116,7 +118,7 @@ const openAIProvider: PlannerProvider = {
   defaultModel: 'gpt-4o-mini',
   requiresApiKey: true,
   supportsStreaming: true,
-  async generatePlanText(request): Promise<string> {
+  async generateTexoStreamText(request): Promise<string> {
     const endpointBase = request.baseUrl?.trim() || 'https://api.openai.com/v1';
     const response = await fetch(`${endpointBase.replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
@@ -130,7 +132,7 @@ const openAIProvider: PlannerProvider = {
         temperature: 0,
         stream: true,
         messages: [
-          { role: 'system', content: buildSystemPrompt(request.catalogGuide) },
+          { role: 'system', content: buildSystemPrompt(request) },
           { role: 'user', content: request.prompt },
         ],
       }),
@@ -162,7 +164,7 @@ const anthropicProvider: PlannerProvider = {
   defaultModel: 'claude-3-5-haiku-latest',
   requiresApiKey: true,
   supportsStreaming: true,
-  async generatePlanText(request): Promise<string> {
+  async generateTexoStreamText(request): Promise<string> {
     const endpointBase = request.baseUrl?.trim() || 'https://api.anthropic.com/v1';
     const response = await fetch(`${endpointBase.replace(/\/$/, '')}/messages`, {
       method: 'POST',
@@ -177,7 +179,7 @@ const anthropicProvider: PlannerProvider = {
         max_tokens: 1800,
         temperature: 0,
         stream: true,
-        system: buildSystemPrompt(request.catalogGuide),
+        system: buildSystemPrompt(request),
         messages: [{ role: 'user', content: request.prompt }],
       }),
     });
@@ -200,8 +202,55 @@ const anthropicProvider: PlannerProvider = {
   },
 };
 
+const deepSeekProvider: PlannerProvider = {
+  id: 'deepseek',
+  label: 'DeepSeek',
+  defaultModel: 'deepseek-chat',
+  requiresApiKey: true,
+  supportsStreaming: true,
+  async generateTexoStreamText(request): Promise<string> {
+    const endpointBase = request.baseUrl?.trim() || 'https://api.deepseek.com/v1';
+    const response = await fetch(`${endpointBase.replace(/\/$/, '')}/chat/completions`, {
+      method: 'POST',
+      signal: request.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${request.apiKey ?? ''}`,
+      },
+      body: JSON.stringify({
+        model: request.model,
+        temperature: 0,
+        stream: true,
+        messages: [
+          { role: 'system', content: buildSystemPrompt(request) },
+          { role: 'user', content: request.prompt },
+        ],
+      }),
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error(`DeepSeek request failed (${response.status})`);
+    }
+
+    return readSSEText(response.body, (event) => {
+      const choices = event.choices;
+      if (!Array.isArray(choices) || choices.length === 0) {
+        return null;
+      }
+      const first = choices[0] as { delta?: { content?: unknown } };
+      const content = first.delta?.content;
+      if (typeof content !== 'string') {
+        return null;
+      }
+      request.onText(content);
+      return content;
+    });
+  },
+};
+
 export const plannerProviders: Record<PlannerProviderId, PlannerProvider> = {
   mock: mockProvider,
   openai: openAIProvider,
   anthropic: anthropicProvider,
+  deepseek: deepSeekProvider,
 };

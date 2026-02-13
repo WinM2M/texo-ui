@@ -5,6 +5,7 @@ const shellStyle: React.CSSProperties = {
   border: '1px solid #d1d5db',
   borderRadius: 12,
   background: '#ffffff',
+  color: '#0f172a',
   padding: 12,
 };
 
@@ -61,7 +62,13 @@ export function TexoGrid(props: Record<string, unknown>): React.ReactElement {
         {Array.from({ length: columns }).map((_, index) => (
           <div
             key={`grid-cell-${index}`}
-            style={{ border: '1px dashed #cbd5e1', borderRadius: 8, minHeight: 48, padding: 8 }}
+            style={{
+              border: '1px dashed #cbd5e1',
+              borderRadius: 8,
+              minHeight: 48,
+              padding: 8,
+              color: '#0f172a',
+            }}
           >
             Cell {index + 1}
           </div>
@@ -111,7 +118,13 @@ export function TexoInput(props: Record<string, unknown>): React.ReactElement {
         name={name}
         type={inputType}
         placeholder={placeholder}
-        style={{ border: '1px solid #d1d5db', borderRadius: 8, padding: '8px 10px' }}
+        style={{
+          border: '1px solid #d1d5db',
+          borderRadius: 8,
+          padding: '8px 10px',
+          background: '#ffffff',
+          color: '#0f172a',
+        }}
       />
     </label>
   );
@@ -122,7 +135,7 @@ export function TexoTable(props: Record<string, unknown>): React.ReactElement {
   const rows = asRecordArray(props.rows);
 
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: 'auto', color: '#0f172a', background: '#ffffff', borderRadius: 10 }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>

@@ -3,34 +3,14 @@ import {
   BUILTIN_COMPONENT_CATALOG,
   createBuiltInComponents,
   type CatalogComponent,
-  type CatalogProp,
 } from '@texo-ui/kit';
-import { validateIntentPlan, type RecoveryEvent } from '@texo-ui/core';
+import {
+  buildTexoStreamSystemPrompt,
+  type RecoveryEvent,
+  type TexoComponentDoc,
+} from '@texo-ui/core';
 import { useMemo, useRef, useState } from 'react';
-import { compileIntentPlanToTexo } from '../utils/intent-compiler';
-import { normalizeIntentPlan } from '../utils/normalize-intent-plan';
-import { extractJSONObject } from '../utils/plan-json';
 import { plannerProviders, type PlannerProviderId } from '../utils/planner-providers';
-
-function streamText(
-  content: string,
-  setContent: (updater: (prev: string) => string) => void,
-  onEnd: () => void,
-): void {
-  let index = 0;
-  const chunkSize = 8;
-  const tick = (): void => {
-    if (index >= content.length) {
-      onEnd();
-      return;
-    }
-    const next = content.slice(index, index + chunkSize);
-    index += chunkSize;
-    setContent((prev) => prev + next);
-    globalThis.setTimeout(tick, 20);
-  };
-  tick();
-}
 
 export function LabPage(): JSX.Element {
   const registry = useMemo(() => createRegistry(createBuiltInComponents()), []);
@@ -42,8 +22,6 @@ export function LabPage(): JSX.Element {
   const [baseUrl, setBaseUrl] = useState('');
   const [prompt, setPrompt] = useState('Create a compact analytics dashboard with a filter form.');
   const [streamTextValue, setStreamTextValue] = useState('');
-  const [planDraftText, setPlanDraftText] = useState('');
-  const [planJson, setPlanJson] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
   const [actions, setActions] = useState<TexoAction[]>([]);
   const [recoveryEvents, setRecoveryEvents] = useState<RecoveryEvent[]>([]);
@@ -51,13 +29,29 @@ export function LabPage(): JSX.Element {
 
   const provider = plannerProviders[providerId];
 
-  const catalogGuide = useMemo(
+  const componentDocs = useMemo<TexoComponentDoc[]>(
     () =>
-      BUILTIN_COMPONENT_CATALOG.map(
-        (item: CatalogComponent) =>
-          `${item.name}: ${item.summary} | props: ${item.props.map((prop: CatalogProp) => prop.name).join(', ')}`,
-      ).join('\n'),
+      BUILTIN_COMPONENT_CATALOG.map((item: CatalogComponent) => ({
+        name: item.name,
+        summary: item.summary,
+        props: item.props,
+        example: item.example,
+      })),
     [],
+  );
+
+  const sharedRules = useMemo(
+    () => [
+      'Output must be directly renderable by TexoRenderer as markdown + directives.',
+      'Do not return JSON object wrappers.',
+      'Close every directive with :::.',
+    ],
+    [],
+  );
+
+  const systemPromptPreview = useMemo(
+    () => buildTexoStreamSystemPrompt({ components: componentDocs, extraRules: sharedRules }),
+    [componentDocs, sharedRules],
   );
 
   const onProviderChange = (nextProviderId: PlannerProviderId): void => {
@@ -80,8 +74,6 @@ export function LabPage(): JSX.Element {
     setActions([]);
     setRecoveryEvents([]);
     setStreamTextValue('');
-    setPlanDraftText('');
-    setPlanJson('');
     setIsGenerating(true);
 
     try {
@@ -90,35 +82,18 @@ export function LabPage(): JSX.Element {
         return;
       }
 
-      const planText = await provider.generatePlanText({
+      await provider.generateTexoStreamText({
         prompt,
         model: model.trim() || provider.defaultModel,
         apiKey: apiKey.trim() || undefined,
         baseUrl: baseUrl.trim() || undefined,
         signal: abortController.signal,
-        catalogGuide,
+        componentDocs,
+        extraRules: sharedRules,
         onText: (chunk) => {
-          setPlanDraftText((prev) => prev + chunk);
+          setStreamTextValue((prev) => prev + chunk);
         },
       });
-
-      const extracted = extractJSONObject(planText);
-      if (!extracted) {
-        setErrors(['Planner output did not contain a valid JSON object.']);
-        return;
-      }
-
-      const parsed = JSON.parse(extracted) as unknown;
-      const normalized = normalizeIntentPlan(parsed);
-      const validated = validateIntentPlan(normalized);
-      setPlanJson(JSON.stringify(normalized, null, 2));
-      if (!validated.ok || !validated.value) {
-        setErrors(validated.errors);
-        return;
-      }
-
-      const compiled = compileIntentPlanToTexo(validated.value);
-      streamText(compiled, setStreamTextValue, () => {});
     } catch (error) {
       const message =
         error instanceof DOMException && error.name === 'AbortError'
@@ -139,7 +114,7 @@ export function LabPage(): JSX.Element {
     <section className="lab-page">
       <header className="lab-header">
         <h2>Generative Lab</h2>
-        <p>Prompt -&gt; IntentPlan -&gt; Directive stream -&gt; Built-in UI rendering</p>
+        <p>Prompt -&gt; LLM Texo Stream -&gt; Built-in UI rendering</p>
       </header>
 
       <div className="lab-grid">
@@ -178,7 +153,9 @@ export function LabPage(): JSX.Element {
                 placeholder={
                   provider.id === 'anthropic'
                     ? 'https://api.anthropic.com/v1'
-                    : 'https://api.openai.com/v1'
+                    : provider.id === 'deepseek'
+                      ? 'https://api.deepseek.com/v1'
+                      : 'https://api.openai.com/v1'
                 }
               />
             </label>
@@ -205,7 +182,7 @@ export function LabPage(): JSX.Element {
               onClick={() => void run()}
               disabled={isGenerating}
             >
-              {isGenerating ? 'Generating...' : 'Generate Plan'}
+              {isGenerating ? 'Generating...' : 'Generate Texo Stream'}
             </button>
             <button type="button" className="lab-cancel" onClick={cancel} disabled={!isGenerating}>
               Cancel
@@ -229,18 +206,13 @@ export function LabPage(): JSX.Element {
         </article>
 
         <article className="panel">
-          <h3>Planner Stream</h3>
-          <pre className="chat-box">{planDraftText || 'Planner tokens stream here.'}</pre>
-        </article>
-
-        <article className="panel">
-          <h3>IntentPlan JSON</h3>
-          <pre className="chat-box">{planJson || 'Plan appears here after generation.'}</pre>
+          <h3>Texo System Prompt</h3>
+          <pre className="chat-box">{systemPromptPreview}</pre>
         </article>
 
         <article className="panel">
           <h3>Texo Stream</h3>
-          <pre className="chat-box">{streamTextValue || 'Compiled directives stream here.'}</pre>
+          <pre className="chat-box">{streamTextValue || 'LLM texo stream appears here.'}</pre>
         </article>
 
         <article className="panel">
