@@ -363,10 +363,22 @@ export function TexoChart(props: Record<string, unknown>): React.ReactElement {
       chartType === 'donut'
         ? 'radial-gradient(circle at center, transparent 43%, #000 44%)'
         : undefined;
+    const singleSeriesName = series.length === 1 ? series[0]?.name : '';
 
     return (
       <section style={shellStyle}>
-        <h3 style={{ margin: 0, marginBottom: 10 }}>Chart ({chartType})</h3>
+        {singleSeriesName ? (
+          <p
+            style={{
+              margin: 0,
+              marginBottom: 10,
+              fontSize: 12,
+              color: 'var(--texo-theme-muted, #6b7280)',
+            }}
+          >
+            {singleSeriesName}
+          </p>
+        ) : null}
         <div
           style={{
             display: 'grid',
@@ -530,7 +542,6 @@ export function TexoChart(props: Record<string, unknown>): React.ReactElement {
 
     return (
       <section style={shellStyle}>
-        <h3 style={{ margin: 0, marginBottom: 10 }}>Chart (line)</h3>
         <svg
           viewBox={`0 0 ${width} ${height}`}
           style={{ width: '100%' }}
@@ -761,7 +772,6 @@ export function TexoChart(props: Record<string, unknown>): React.ReactElement {
 
   return (
     <section style={shellStyle}>
-      <h3 style={{ margin: 0, marginBottom: 8 }}>Chart ({chartType})</h3>
       <div style={{ display: 'grid', gap: 6 }}>
         {(series[0]?.values ?? []).map((value, index) => {
           const label = labels[index] ?? String(index + 1);
