@@ -370,7 +370,6 @@ export function LabPage(): JSX.Element {
     setEditableStreamText('');
     setRenderStreamText('');
     setIsGenerating(true);
-    let nextStream = '';
 
     try {
       if (provider.requiresApiKey && !apiKey.trim()) {
@@ -387,15 +386,11 @@ export function LabPage(): JSX.Element {
         componentDocs,
         extraRules: sharedRules,
         onText: (chunk) => {
-          nextStream += chunk;
           setStreamTextValue((prev) => prev + chunk);
           setEditableStreamText((prev) => prev + chunk);
-          if (showProgressRendering) {
-            setRenderStreamText((prev) => prev + chunk);
-          }
+          setRenderStreamText((prev) => prev + chunk);
         },
       });
-      setRenderStreamText(nextStream);
     } catch (error) {
       const message =
         error instanceof DOMException && error.name === 'AbortError'
