@@ -1,6 +1,7 @@
 import type { KitComponent } from './types';
 import {
   TexoButton,
+  TexoCheckbox,
   TexoChart,
   TexoGrid,
   TexoInput,
@@ -15,6 +16,7 @@ export function createBuiltInComponents(): Record<string, KitComponent> {
     stack: TexoStack,
     grid: TexoGrid,
     button: TexoButton,
+    checkbox: TexoCheckbox,
     input: TexoInput,
     table: TexoTable,
     chart: TexoChart,
@@ -23,6 +25,7 @@ export function createBuiltInComponents(): Record<string, KitComponent> {
     'texo-stack': TexoStack,
     'texo-grid': TexoGrid,
     'texo-button': TexoButton,
+    'texo-checkbox': TexoCheckbox,
     'texo-input': TexoInput,
     'texo-table': TexoTable,
     'texo-chart': TexoChart,

@@ -19,6 +19,11 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
       { name: 'action', type: 'string', required: true, description: 'Action id to emit.' },
       { name: 'variant', type: 'primary|secondary|ghost', description: 'Visual style.' },
       {
+        name: 'selected',
+        type: 'boolean',
+        description: 'Selection state for toggle-like button UIs.',
+      },
+      {
         name: 'stylePreset',
         type: 'compact|wide|raised|pill|flat|outline-bold',
         description: 'Optional shape/size/shadow preset.',
@@ -36,6 +41,18 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
       { name: 'inputType', type: 'text|number|email|date', description: 'HTML input type.' },
     ],
     example: ':> input\n - label: "Email"\n - name: "email"\n - inputType: "email"',
+  },
+  {
+    name: 'checkbox',
+    summary: 'Checkbox input that emits toggle action events.',
+    props: [
+      { name: 'label', type: 'string', required: true, description: 'Checkbox label text.' },
+      { name: 'name', type: 'string', required: true, description: 'Field key.' },
+      { name: 'checked', type: 'boolean', description: 'Initial checked value.' },
+      { name: 'action', type: 'string', description: 'Action id emitted on change.' },
+    ],
+    example:
+      ':> checkbox\n - label: "Receive alerts"\n - name: "alerts"\n - checked: true\n - action: "toggle-alerts"',
   },
   {
     name: 'grid',

@@ -50,7 +50,7 @@ describe('directive parsing', () => {
 
   it('handles empty directive', () => {
     const directives = getDirectives('::: card\n:::\n');
-    expect((directives[0] as any).attributes).toEqual({});
+    expect((directives[0] as any).attributes).toMatchObject({ id: 'directive-1' });
   });
 
   it('validates directive name format', () => {
@@ -61,5 +61,18 @@ describe('directive parsing', () => {
   it('supports multiple directives in document', () => {
     const directives = getDirectives('hi\n::: a\nx: 1\n:::\ntext\n::: b\ny: 2\n:::\n');
     expect(directives).toHaveLength(2);
+  });
+
+  it('parses compact :> header with size and color suffix', () => {
+    const directives = getDirectives(':> button 100x50 red\n - label: "Go"\ntext\n');
+    const directive = directives[0] as any;
+    expect(directive.name).toBe('button');
+    expect(directive.attributes).toMatchObject({
+      id: 'directive-1',
+      width: 100,
+      height: 50,
+      color: 'red',
+      label: 'Go',
+    });
   });
 });

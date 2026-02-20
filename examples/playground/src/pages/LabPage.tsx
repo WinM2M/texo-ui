@@ -99,9 +99,81 @@ function readLabSplitHeight(): number | null {
   return Math.min(1200, Math.max(220, parsed));
 }
 
+function splitDirectiveBlocks(stream: string): string[] {
+  const lines = stream.split('\n');
+  const blocks: string[] = [];
+
+  let index = 0;
+  while (index < lines.length) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith(':::')) {
+      const blockLines = [line];
+      index += 1;
+      while (index < lines.length) {
+        blockLines.push(lines[index]);
+        if (lines[index].trim() === ':::') {
+          index += 1;
+          break;
+        }
+        index += 1;
+      }
+      blocks.push(blockLines.join('\n'));
+      continue;
+    }
+
+    if (trimmed.startsWith(':>')) {
+      const blockLines = [line];
+      index += 1;
+      while (index < lines.length) {
+        const bodyLine = lines[index];
+        if (/^ -\s+/.test(bodyLine)) {
+          blockLines.push(bodyLine);
+          index += 1;
+          continue;
+        }
+        break;
+      }
+      blocks.push(blockLines.join('\n'));
+      continue;
+    }
+
+    index += 1;
+  }
+
+  return blocks;
+}
+
+function extractDirectiveId(block: string): string | null {
+  const lines = block.split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const legacyMatch = /^id\s*:\s*["']?([^"'\n]+)["']?\s*$/.exec(trimmed);
+    if (legacyMatch) {
+      return legacyMatch[1];
+    }
+    const nextMatch = /^-\s*id\s*:\s*["']?([^"'\n]+)["']?\s*$/.exec(trimmed);
+    if (nextMatch) {
+      return nextMatch[1];
+    }
+  }
+  return null;
+}
+
+function buildFocusedInteractionContext(stream: string, componentId?: string): string {
+  if (!componentId) {
+    return '';
+  }
+  const blocks = splitDirectiveBlocks(stream);
+  const targetBlock = blocks.find((block) => extractDirectiveId(block) === componentId);
+  return targetBlock ?? '';
+}
+
 export function LabPage(): JSX.Element {
   const registry = useMemo(() => createRegistry(createBuiltInComponents()), []);
   const abortRef = useRef<AbortController | null>(null);
+  const actionAbortRef = useRef<AbortController | null>(null);
   const pageRef = useRef<HTMLElement | null>(null);
   const splitContainerRef = useRef<HTMLDivElement | null>(null);
   const splitDragStateRef = useRef<{ startX: number; startLeftPercent: number } | null>(null);
@@ -126,6 +198,7 @@ export function LabPage(): JSX.Element {
   const [actions, setActions] = useState<TexoAction[]>([]);
   const [recoveryEvents, setRecoveryEvents] = useState<RecoveryEvent[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isHandlingAction, setIsHandlingAction] = useState(false);
   const [leftPanelWidthPercent, setLeftPanelWidthPercent] = useState(initialSplitWidth ?? 50);
   const [isResizingPanels, setIsResizingPanels] = useState(false);
   const [mainRowHeight, setMainRowHeight] = useState<number | null>(initialSplitHeight);
@@ -187,6 +260,7 @@ export function LabPage(): JSX.Element {
       'For cell coordinates, prefer 1-based row/column values.',
       'Place components into grid cells with optional mount field instead of nesting as grid children.',
       'For incremental updates, assign stable id values to directives and reuse the same id to replace existing UI blocks.',
+      'For interaction-driven updates, include id on each returned directive so exact components are updated.',
       'Default behavior is finalized rendering: avoid relying on partially open directives for preview unless user explicitly asks "과정 표시".',
       'Support theming with theme using scope: global/local and token keys (background, foreground, accent, line, radius, border, paddingY, paddingX, shadow).',
       'Prefer theme preset names first, then override only needed tokens.',
@@ -354,8 +428,99 @@ export function LabPage(): JSX.Element {
 
   const cancel = (): void => {
     abortRef.current?.abort();
+    actionAbortRef.current?.abort();
     abortRef.current = null;
+    actionAbortRef.current = null;
     setIsGenerating(false);
+    setIsHandlingAction(false);
+  };
+
+  const runInteractionUpdate = async (action: TexoAction): Promise<void> => {
+    if (provider.requiresApiKey && !apiKey.trim()) {
+      setErrors((prev) => [
+        ...prev,
+        `${provider.label} provider requires an API key for interactions.`,
+      ]);
+      return;
+    }
+
+    actionAbortRef.current?.abort();
+    const abortController = new AbortController();
+    actionAbortRef.current = abortController;
+    setIsHandlingAction(true);
+
+    const actionPayload = {
+      ...action,
+      timestamp: new Date().toISOString(),
+    };
+
+    const componentId =
+      typeof action.value === 'object' && action.value !== null
+        ? (action.value as Record<string, unknown>).componentId
+        : undefined;
+    const targetComponentId = typeof componentId === 'string' ? componentId : undefined;
+    const focusedContext = buildFocusedInteractionContext(streamTextValue, targetComponentId);
+
+    const interactionPrompt = [
+      'You are handling a UI interaction event for an existing rendered UI.',
+      'Return only the minimal directives needed to update affected components (delta-only).',
+      'Do not regenerate the full UI. Do not repeat unchanged directives.',
+      'Return at most 1-3 directives unless absolutely necessary.',
+      'Every returned directive must include explicit id so the renderer updates the exact component.',
+      targetComponentId
+        ? `Primary target component id: ${targetComponentId}. Prefer updating this id only.`
+        : 'No explicit component id was provided by event payload; update only the smallest relevant subset.',
+      `Event: ${JSON.stringify(actionPayload)}`,
+      focusedContext ? 'Focused component snapshot:' : 'Current stream snapshot:',
+      focusedContext || streamTextValue,
+    ].join('\n\n');
+
+    let prependedGap = false;
+
+    try {
+      await provider.generateTexoStreamText({
+        prompt: interactionPrompt,
+        model: model.trim() || provider.defaultModel,
+        apiKey: apiKey.trim() || undefined,
+        baseUrl: baseUrl.trim() || undefined,
+        signal: abortController.signal,
+        componentDocs,
+        extraRules: [
+          ...sharedRules,
+          'This is an interaction update request, not a full UI generation.',
+          'Return only changed directives and include id on each returned directive.',
+          'Do not restate unchanged components.',
+          'Prefer single-component updates using the event component id when available.',
+        ],
+        onText: (chunk) => {
+          const shouldInsertGap = !prependedGap;
+          prependedGap = true;
+          const appendChunk = (prev: string): string => {
+            if (shouldInsertGap) {
+              const gap = prev.trim().length > 0 ? '\n\n' : '';
+              return `${prev}${gap}${chunk}`;
+            }
+            return `${prev}${chunk}`;
+          };
+          setStreamTextValue((prev) => appendChunk(prev));
+          setEditableStreamText((prev) => appendChunk(prev));
+          setRenderStreamText((prev) => appendChunk(prev));
+        },
+      });
+    } catch (error) {
+      const message =
+        error instanceof DOMException && error.name === 'AbortError'
+          ? 'Interaction update cancelled.'
+          : error instanceof Error
+            ? error.message
+            : 'Unknown interaction update error';
+      setErrors((prev) => [...prev, message]);
+    } finally {
+      if (actionAbortRef.current === abortController) {
+        actionAbortRef.current = null;
+      }
+      setIsHandlingAction(false);
+    }
   };
 
   const run = async (): Promise<void> => {
@@ -522,11 +687,16 @@ export function LabPage(): JSX.Element {
               type="button"
               className="cta"
               onClick={() => void run()}
-              disabled={isGenerating}
+              disabled={isGenerating || isHandlingAction}
             >
               {isGenerating ? 'Generating...' : 'Generate Texo Stream'}
             </button>
-            <button type="button" className="lab-cancel" onClick={cancel} disabled={!isGenerating}>
+            <button
+              type="button"
+              className="lab-cancel"
+              onClick={cancel}
+              disabled={!isGenerating && !isHandlingAction}
+            >
               Cancel
             </button>
           </div>
@@ -552,7 +722,12 @@ export function LabPage(): JSX.Element {
               trimLeadingTextBeforeDirective
               renderDirectivesOnly
               showStreamingDirectives={showProgressRendering}
-              onAction={(action) => setActions((prev) => [...prev, action])}
+              onAction={(action) => {
+                setActions((prev) => [...prev, action]);
+                if (!isGenerating) {
+                  void runInteractionUpdate(action);
+                }
+              }}
               onError={(event) => setRecoveryEvents((prev) => [...prev, event])}
             />
           </div>

@@ -452,11 +452,17 @@ export class ASTBuilder {
       type: 'directive',
       position: token.position,
       name: header?.name ?? 'unknown',
-      attributes: header?.inlineAttributes ?? {},
+      attributes: {
+        ...(header?.inlineAttributes ?? {}),
+      },
       rawBody: '',
       status: 'streaming',
       meta: header ? undefined : { recovered: true },
     };
+
+    if (typeof directive.attributes.id !== 'string' || directive.attributes.id.length === 0) {
+      directive.attributes.id = directive.id;
+    }
 
     this.appendRootNode(directive);
     this.activeDirective = {
@@ -485,6 +491,10 @@ export class ASTBuilder {
       ...directive.attributes,
       ...this.activeDirective.lastValidBodyAttributes,
     };
+
+    if (typeof directive.attributes.id !== 'string' || directive.attributes.id.length === 0) {
+      directive.attributes.id = directive.id;
+    }
 
     if (
       this.recoveryManager &&

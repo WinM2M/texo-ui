@@ -132,7 +132,7 @@ function buildSystemPrompt(request: PlannerRequest): string {
     components: request.componentDocs,
     extraRules: [
       'Use only listed components unless absolutely necessary.',
-      'Close every directive block with :::',
+      'Use :> directives and end each component when indented property lines stop.',
       ...(request.extraRules ?? []),
     ],
   });

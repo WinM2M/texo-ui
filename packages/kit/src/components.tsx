@@ -256,8 +256,10 @@ export function TexoSvg(props: Record<string, unknown>): React.ReactElement {
 
 export function TexoButton(props: Record<string, unknown>): React.ReactElement {
   const texoContext = React.useContext(TexoContext);
+  const componentId = asString(props.id);
   const label = asString(props.label, 'Action');
   const action = asString(props.action, 'action');
+  const selected = asBoolean(props.selected, false);
   const stylePreset =
     props.stylePreset === 'compact' ||
     props.stylePreset === 'wide' ||
@@ -307,7 +309,11 @@ export function TexoButton(props: Record<string, unknown>): React.ReactElement {
       type="button"
       data-action={action}
       onClick={() =>
-        texoContext?.dispatch({ type: action, directive: 'button', value: { label, action } })
+        texoContext?.dispatch({
+          type: action,
+          directive: 'button',
+          value: { label, action, componentId, selected },
+        })
       }
       style={{
         borderRadius: 'var(--texo-theme-radius, 10px)',
@@ -322,10 +328,60 @@ export function TexoButton(props: Record<string, unknown>): React.ReactElement {
         justifyContent: 'center',
         ...styles[variant],
         ...(stylePreset ? presetStyles[stylePreset] : {}),
+        ...(selected
+          ? {
+              boxShadow:
+                '0 0 0 2px var(--texo-theme-accent, #2563eb), 0 10px 20px rgba(15, 23, 42, 0.18)',
+              transform: 'translateY(-1px)',
+            }
+          : {
+              opacity: 0.92,
+            }),
       }}
+      aria-pressed={selected}
+      data-selected={selected ? 'true' : 'false'}
     >
       {label}
     </button>
+  );
+}
+
+export function TexoCheckbox(props: Record<string, unknown>): React.ReactElement {
+  const texoContext = React.useContext(TexoContext);
+  const componentId = asString(props.id);
+  const label = asString(props.label, 'Check');
+  const name = asString(props.name, 'checkbox');
+  const action = asString(props.action, `toggle-${name}`);
+  const checked = Boolean(props.checked);
+
+  return (
+    <label
+      style={{
+        ...shellStyle,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+      }}
+    >
+      <input
+        type="checkbox"
+        name={name}
+        defaultChecked={checked}
+        onChange={(event) => {
+          texoContext?.dispatch({
+            type: action,
+            directive: 'checkbox',
+            value: {
+              label,
+              name,
+              checked: event.currentTarget.checked,
+              componentId,
+            },
+          });
+        }}
+      />
+      <span>{label}</span>
+    </label>
   );
 }
 
