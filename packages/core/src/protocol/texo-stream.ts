@@ -137,6 +137,8 @@ export const TEXO_STREAM_PRIMER = [
   '- If cells are omitted, renderer auto-generates cell ids as "<grid-id>/<row>:<col>".',
   '- For simple grids, avoid listing every cell to reduce stream size and latency.',
   '- Add cells only when span override is required for specific coordinates.',
+  '- Prefer compact span overrides: cells: [{ id, at: "<row>:<col>", span: "<rowSpan>x<colSpan>" }].',
+  '- Mount large sections to span cells (for example chart/table areas) instead of stacking many widgets into one small cell.',
   '- Prefer 1-based row/column coordinates for cells (renderer also normalizes 0-based input).',
   '- Any component can optionally set mount: "<cell-id>" or mount: "<grid-id>:<cell-id>".',
   '- Components can set id: "<stable-id>" to support in-place updates later in the same stream.',

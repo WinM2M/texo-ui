@@ -79,6 +79,36 @@ function asFiniteNumber(value: unknown): number | undefined {
   return undefined;
 }
 
+function parseGridCoordinate(value: unknown): { row: number; column: number } | null {
+  const raw = asString(value);
+  if (!raw) {
+    return null;
+  }
+  const match = /^(\d+)\s*:\s*(\d+)$/.exec(raw);
+  if (!match) {
+    return null;
+  }
+  return {
+    row: Number(match[1]),
+    column: Number(match[2]),
+  };
+}
+
+function parseGridSpan(value: unknown): { rowSpan: number; columnSpan: number } | null {
+  const raw = asString(value);
+  if (!raw) {
+    return null;
+  }
+  const match = /^(\d+)\s*x\s*(\d+)$/i.exec(raw);
+  if (!match) {
+    return null;
+  }
+  return {
+    rowSpan: Number(match[1]),
+    columnSpan: Number(match[2]),
+  };
+}
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -212,8 +242,9 @@ function parseGridCells(
       }
       const fallbackRow = Math.floor(index / columns) + 1;
       const fallbackColumn = (index % columns) + 1;
-      const explicitRow = asFiniteNumber(entry.row);
-      const explicitColumn = asFiniteNumber(entry.column);
+      const compactAt = parseGridCoordinate(entry.at);
+      const explicitRow = asFiniteNumber(entry.row) ?? compactAt?.row;
+      const explicitColumn = asFiniteNumber(entry.column) ?? compactAt?.column;
       const row =
         explicitRow !== undefined
           ? hasZeroRow
@@ -234,8 +265,12 @@ function parseGridCells(
         return;
       }
 
-      targetCell.rowSpan = asNumber(entry.rowSpan, targetCell.rowSpan);
-      targetCell.columnSpan = asNumber(entry.columnSpan ?? entry.colSpan, targetCell.columnSpan);
+      const compactSpan = parseGridSpan(entry.span);
+      targetCell.rowSpan = asNumber(entry.rowSpan, compactSpan?.rowSpan ?? targetCell.rowSpan);
+      targetCell.columnSpan = asNumber(
+        entry.columnSpan ?? entry.colSpan,
+        compactSpan?.columnSpan ?? targetCell.columnSpan,
+      );
 
       const customId = asString(entry.id);
       if (customId && customId !== targetCell.id) {

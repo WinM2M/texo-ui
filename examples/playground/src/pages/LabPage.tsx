@@ -259,6 +259,8 @@ export function LabPage(): JSX.Element {
       'Do not use texo- prefixes in component names.',
       'When using grid, always declare id/rows/columns; omit full cells list unless span overrides are needed.',
       'If no cells are provided, mounts should target auto cell ids in <grid-id>/<row>:<col> form.',
+      'For span overrides, prefer compact cells entries using at:"row:col" and span:"rowSpanxcolSpan".',
+      'For dashboard layouts, assign dedicated span cells for filter/header/main chart/side chart/table sections.',
       'Component header can include optional size and color tokens, e.g. button 100x50 red.',
       'For cell coordinates, prefer 1-based row/column values.',
       'Place components into grid cells with optional mount field instead of nesting as grid children.',

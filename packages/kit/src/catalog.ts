@@ -58,10 +58,23 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
     name: 'grid',
     summary: 'Grid layout helper for presenting cards and stats.',
     props: [
+      {
+        name: 'id',
+        type: 'string',
+        required: true,
+        description: 'Stable grid id for cell mounts.',
+      },
+      { name: 'rows', type: 'number', required: true, description: 'Number of rows.' },
       { name: 'columns', type: 'number', description: 'Number of columns.' },
+      {
+        name: 'cells',
+        type: 'Array<{id,at,span?}>',
+        description: 'Optional span overrides, e.g. {id:"main",at:"2:1",span:"1x8"}.',
+      },
       { name: 'title', type: 'string', description: 'Optional heading text.' },
     ],
-    example: ':> grid\n - id: "overview"\n - rows: 1\n - columns: 2\n - title: "Overview"',
+    example:
+      ':> grid\n - id: "overview"\n - rows: 3\n - columns: 12\n - cells: [{"id":"main","at":"2:1","span":"1x8"},{"id":"side","at":"2:9","span":"1x4"}]\n - title: "Overview"',
   },
   {
     name: 'table',
