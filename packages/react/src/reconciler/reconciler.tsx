@@ -13,6 +13,7 @@ interface GridCellDef {
   column: number;
   rowSpan: number;
   columnSpan: number;
+  mountAliases?: string[];
 }
 
 interface GridEntry {
@@ -159,10 +160,29 @@ function themeToStyle(tokens: ThemeTokens): React.CSSProperties {
 }
 
 function parseGridCells(
+  gridId: string,
   attributes: Record<string, unknown>,
   rows: number,
   columns: number,
 ): GridCellDef[] {
+  const generated: GridCellDef[] = [];
+  const byCoord = new Map<string, GridCellDef>();
+  for (let row = 1; row <= rows; row += 1) {
+    for (let column = 1; column <= columns; column += 1) {
+      const generatedId = `${gridId}/${row}:${column}`;
+      const cell: GridCellDef = {
+        id: generatedId,
+        row,
+        column,
+        rowSpan: 1,
+        columnSpan: 1,
+        mountAliases: [generatedId],
+      };
+      generated.push(cell);
+      byCoord.set(`${row}:${column}`, cell);
+    }
+  }
+
   const cells = attributes.cells;
   if (Array.isArray(cells) && cells.length > 0) {
     const rawCoords = cells
@@ -182,53 +202,46 @@ function parseGridCells(
     const hasZeroRow = rawCoords.some((entry) => entry.row === 0);
     const hasZeroColumn = rawCoords.some((entry) => entry.column === 0);
 
-    const parsed = cells
-      .map((entry, index) => {
-        if (!isObject(entry)) {
-          return null;
-        }
-        const id = asString(entry.id) ?? `cell-${index + 1}`;
-        const fallbackRow = Math.floor(index / columns) + 1;
-        const fallbackColumn = (index % columns) + 1;
-        const explicitRow = asFiniteNumber(entry.row);
-        const explicitColumn = asFiniteNumber(entry.column);
-        const row =
-          explicitRow !== undefined
-            ? hasZeroRow
-              ? Math.floor(explicitRow) + 1
-              : Math.floor(explicitRow)
-            : fallbackRow;
-        const column =
-          explicitColumn !== undefined
-            ? hasZeroColumn
-              ? Math.floor(explicitColumn) + 1
-              : Math.floor(explicitColumn)
-            : fallbackColumn;
-        const rowSpan = asNumber(entry.rowSpan, 1);
-        const columnSpan = asNumber(entry.columnSpan ?? entry.colSpan, 1);
-        return {
-          id,
-          row: Math.min(Math.max(row, 1), rows),
-          column: Math.min(Math.max(column, 1), columns),
-          rowSpan,
-          columnSpan,
-        };
-      })
-      .filter((entry): entry is GridCellDef => entry !== null);
+    cells.forEach((entry, index) => {
+      if (!isObject(entry)) {
+        return;
+      }
+      const fallbackRow = Math.floor(index / columns) + 1;
+      const fallbackColumn = (index % columns) + 1;
+      const explicitRow = asFiniteNumber(entry.row);
+      const explicitColumn = asFiniteNumber(entry.column);
+      const row =
+        explicitRow !== undefined
+          ? hasZeroRow
+            ? Math.floor(explicitRow) + 1
+            : Math.floor(explicitRow)
+          : fallbackRow;
+      const column =
+        explicitColumn !== undefined
+          ? hasZeroColumn
+            ? Math.floor(explicitColumn) + 1
+            : Math.floor(explicitColumn)
+          : fallbackColumn;
+      const safeRow = Math.min(Math.max(row, 1), rows);
+      const safeColumn = Math.min(Math.max(column, 1), columns);
+      const key = `${safeRow}:${safeColumn}`;
+      const targetCell = byCoord.get(key);
+      if (!targetCell) {
+        return;
+      }
 
-    if (parsed.length > 0) {
-      return parsed;
-    }
+      targetCell.rowSpan = asNumber(entry.rowSpan, targetCell.rowSpan);
+      targetCell.columnSpan = asNumber(entry.columnSpan ?? entry.colSpan, targetCell.columnSpan);
+
+      const customId = asString(entry.id);
+      if (customId && customId !== targetCell.id) {
+        targetCell.mountAliases = Array.from(
+          new Set([...(targetCell.mountAliases ?? []), customId, `${gridId}:${customId}`]),
+        );
+      }
+    });
   }
 
-  const generated: GridCellDef[] = [];
-  let index = 1;
-  for (let row = 1; row <= rows; row += 1) {
-    for (let column = 1; column <= columns; column += 1) {
-      generated.push({ id: `cell-${index}`, row, column, rowSpan: 1, columnSpan: 1 });
-      index += 1;
-    }
-  }
   return generated;
 }
 
@@ -322,7 +335,7 @@ function renderRootWithMounting(
 ): React.ReactNode {
   const entries: RootEntry[] = [];
   const gridById = new Map<string, GridEntry>();
-  const cellToGrid = new Map<string, GridEntry>();
+  const cellToGrid = new Map<string, { grid: GridEntry; cellId: string }>();
   const rootNodeIndexByUiId = new Map<string, number>();
   const mountedUiPlacement = new Map<string, { grid: GridEntry; cellId: string }>();
   const localThemeByMount = new Map<string, ThemeTokens>();
@@ -442,7 +455,7 @@ function renderRootWithMounting(
       const rows = asNumber(node.attributes.rows, 1);
       const columns = asNumber(node.attributes.columns, 2);
       const gridId = asString(node.attributes.id) ?? `grid-${gridCount}`;
-      const cells = parseGridCells(node.attributes, rows, columns);
+      const cells = parseGridCells(gridId, node.attributes, rows, columns);
       const mountedByCellId = new Map<string, MountedNodeEntry[]>();
       cells.forEach((cell) => {
         mountedByCellId.set(cell.id, []);
@@ -464,8 +477,10 @@ function renderRootWithMounting(
       entries.push(entry);
       gridById.set(gridId, entry);
       cells.forEach((cell) => {
-        cellToGrid.set(cell.id, entry);
-        cellToGrid.set(`${gridId}:${cell.id}`, entry);
+        const aliases = new Set([cell.id, `${gridId}:${cell.id}`, ...(cell.mountAliases ?? [])]);
+        aliases.forEach((alias) => {
+          cellToGrid.set(alias, { grid: entry, cellId: cell.id });
+        });
       });
       return;
     }
@@ -503,14 +518,16 @@ function renderRootWithMounting(
           return;
         }
 
-        const mountedGrid = cellToGrid.get(mountTarget);
-        if (mountedGrid) {
-          const cellId = mountTarget.includes(':') ? mountTarget.split(':')[1] : mountTarget;
-          const mounted = mountedGrid.mountedByCellId.get(cellId) ?? [];
+        const mountedTarget = cellToGrid.get(mountTarget);
+        if (mountedTarget) {
+          const mounted = mountedTarget.grid.mountedByCellId.get(mountedTarget.cellId) ?? [];
           mounted.push({ key: node.id, node: renderedDirective, uiId });
-          mountedGrid.mountedByCellId.set(cellId, mounted);
+          mountedTarget.grid.mountedByCellId.set(mountedTarget.cellId, mounted);
           if (uiId) {
-            mountedUiPlacement.set(uiId, { grid: mountedGrid, cellId });
+            mountedUiPlacement.set(uiId, {
+              grid: mountedTarget.grid,
+              cellId: mountedTarget.cellId,
+            });
           }
           return;
         }
