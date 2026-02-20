@@ -12,6 +12,14 @@ import {
 
 export function createBuiltInComponents(): Record<string, KitComponent> {
   return {
+    stack: TexoStack,
+    grid: TexoGrid,
+    button: TexoButton,
+    input: TexoInput,
+    table: TexoTable,
+    chart: TexoChart,
+    rect: TexoRect,
+    svg: TexoSvg,
     'texo-stack': TexoStack,
     'texo-grid': TexoGrid,
     'texo-button': TexoButton,

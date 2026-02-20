@@ -6,15 +6,50 @@ export interface DirectiveHeader {
   inlineAttributes: Record<string, unknown>;
 }
 
+function normalizeDirectiveName(name: string): string {
+  return name.toLowerCase().replace(/^texo-/, '');
+}
+
+function parseSuffixTokens(tokensRaw: string): Record<string, unknown> {
+  const attributes: Record<string, unknown> = {};
+  const tokens = tokensRaw
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0);
+
+  tokens.forEach((token) => {
+    const sizeMatch = /^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$/i.exec(token);
+    if (sizeMatch) {
+      attributes.width = Number(sizeMatch[1]);
+      attributes.height = Number(sizeMatch[2]);
+      return;
+    }
+
+    if (/^#[0-9a-fA-F]{3,8}$/.test(token) || /^[a-zA-Z][a-zA-Z0-9-]*$/.test(token)) {
+      attributes.color = token;
+    }
+  });
+
+  return attributes;
+}
+
 export function parseDirectiveHeader(line: string): DirectiveHeader | null {
   const trimmed = line.trim();
-  const match = /^:::\s*([a-zA-Z0-9-]+)\s*(?:\{(.*)\})?\s*$/.exec(trimmed);
-  if (!match) {
+
+  const nextSyntax = /^:>\s*([a-zA-Z0-9-]+)(?:\s+(.*))?$/.exec(trimmed);
+  if (nextSyntax) {
+    const name = normalizeDirectiveName(nextSyntax[1]);
+    const inlineAttributes = parseSuffixTokens(nextSyntax[2] ?? '');
+    return { name, inlineAttributes };
+  }
+
+  const legacyMatch = /^:::\s*([a-zA-Z0-9-]+)\s*(?:\{(.*)\})?\s*$/.exec(trimmed);
+  if (!legacyMatch) {
     return null;
   }
 
-  const name = match[1].toLowerCase();
-  const inlineRaw = match[2]?.trim();
+  const name = normalizeDirectiveName(legacyMatch[1]);
+  const inlineRaw = legacyMatch[2]?.trim();
   const inlineAttributes = inlineRaw ? parseInlineAttributes(inlineRaw) : {};
 
   return { name, inlineAttributes };
@@ -44,7 +79,7 @@ export function* tokenizeDirective(
   const line = buffer.trimEnd();
   const trimmed = line.trim();
 
-  if (trimmed === ':::') {
+  if (trimmed === ':::' || trimmed === ':>') {
     yield {
       type: 'directive-close',
       raw: buffer,

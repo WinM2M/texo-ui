@@ -24,6 +24,60 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function parseDirectiveScalar(raw: string): unknown {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return '';
+  }
+  if (trimmed === 'true') {
+    return true;
+  }
+  if (trimmed === 'false') {
+    return false;
+  }
+  if (trimmed === 'null') {
+    return null;
+  }
+  if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) {
+    return Number(trimmed);
+  }
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+    try {
+      return YAML.parse(trimmed);
+    } catch {
+      return trimmed;
+    }
+  }
+  return trimmed;
+}
+
+function parseDirectiveBodyListStyle(rawBody: string): Record<string, unknown> | null {
+  const attributes: Record<string, unknown> = {};
+  const lines = rawBody.split('\n').map((line) => line.trimEnd());
+  let hasAny = false;
+
+  for (const line of lines) {
+    if (line.trim().length === 0) {
+      continue;
+    }
+    const match = /^ -\s*([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*)$/.exec(line);
+    if (!match) {
+      return null;
+    }
+    hasAny = true;
+    const [, key, rawValue] = match;
+    attributes[key] = parseDirectiveScalar(rawValue);
+  }
+
+  return hasAny ? attributes : {};
+}
+
 function cloneNode<T extends ASTNode>(node: T): T {
   const clonedChildren = node.children?.map((child) => cloneNode(child));
   return {
@@ -460,6 +514,11 @@ export class ASTBuilder {
     rawBody: string,
     fallback: Record<string, unknown>,
   ): Record<string, unknown> {
+    const listStyleParsed = parseDirectiveBodyListStyle(rawBody);
+    if (listStyleParsed) {
+      return listStyleParsed;
+    }
+
     if (this.recoveryManager) {
       return this.recoveryManager.recoverYAML(rawBody, fallback);
     }

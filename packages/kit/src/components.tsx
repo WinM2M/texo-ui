@@ -307,7 +307,7 @@ export function TexoButton(props: Record<string, unknown>): React.ReactElement {
       type="button"
       data-action={action}
       onClick={() =>
-        texoContext?.dispatch({ type: action, directive: 'texo-button', value: { label, action } })
+        texoContext?.dispatch({ type: action, directive: 'button', value: { label, action } })
       }
       style={{
         borderRadius: 'var(--texo-theme-radius, 10px)',

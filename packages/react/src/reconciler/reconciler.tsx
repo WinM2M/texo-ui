@@ -45,6 +45,10 @@ function isDirectiveNode(node: ASTNode): node is DirectiveNode {
   return node.type === 'directive';
 }
 
+function directiveNameMatches(name: string, target: string): boolean {
+  return name === target || name === `texo-${target}`;
+}
+
 function asString(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
@@ -420,7 +424,7 @@ function renderRootWithMounting(
       return;
     }
 
-    if (isDirectiveNode(node) && node.name === 'texo-theme') {
+    if (isDirectiveNode(node) && directiveNameMatches(node.name, 'theme')) {
       const scope = asString(node.attributes.scope) === 'local' ? 'local' : 'global';
       const tokens = parseThemeTokens(node.attributes);
 
@@ -450,7 +454,7 @@ function renderRootWithMounting(
       return;
     }
 
-    if (isDirectiveNode(node) && node.name === 'texo-grid') {
+    if (isDirectiveNode(node) && directiveNameMatches(node.name, 'grid')) {
       gridCount += 1;
       const rows = asNumber(node.attributes.rows, 1);
       const columns = asNumber(node.attributes.columns, 2);

@@ -5,6 +5,7 @@ import { isBlockquote } from './tokenizers/blockquote';
 import { createHeadingEvent } from './tokenizers/heading';
 import { tokenizeInline } from './tokenizers/inline';
 import { isListItem } from './tokenizers/list';
+import { parseDirectiveHeader } from './tokenizers/directive';
 
 function clonePosition(position: Position): Position {
   return { ...position };
@@ -19,8 +20,13 @@ function isHorizontalRule(line: string): boolean {
   return /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line);
 }
 
+function isDirectiveBodyLine(line: string): boolean {
+  return /^ -\s+/.test(line);
+}
+
 export class StreamParser {
   private state: ParserState = DEFAULT_STATE;
+  private directiveBodyMode: 'legacy' | 'next' | null = null;
   private lineBuffer = '';
   private lineStart: Position = { line: 1, column: 1, offset: 0 };
   private position: Position = { line: 1, column: 1, offset: 0 };
@@ -80,6 +86,7 @@ export class StreamParser {
 
   reset(): void {
     this.state = DEFAULT_STATE;
+    this.directiveBodyMode = null;
     this.lineBuffer = '';
     this.lineStart = { line: 1, column: 1, offset: 0 };
     this.position = { line: 1, column: 1, offset: 0 };
@@ -106,15 +113,38 @@ export class StreamParser {
     }
 
     if (this.state === 'DIRECTIVE_BODY') {
-      if (trimmed === ':::') {
+      const isLegacyMode = this.directiveBodyMode === 'legacy';
+
+      if (trimmed === ':::' || trimmed === ':>') {
         yield { type: 'directive-close', raw: line, position: linePosition };
         this.state = 'IDLE';
-      } else {
+        this.directiveBodyMode = null;
+        if (hasNewline) {
+          yield this.newlineEvent(linePosition, line.length);
+        }
+        return;
+      }
+
+      if (isLegacyMode) {
         yield { type: 'directive-body', raw: line, position: linePosition };
+        if (hasNewline) {
+          yield this.newlineEvent(linePosition, line.length);
+        }
+        return;
       }
-      if (hasNewline) {
-        yield this.newlineEvent(linePosition, line.length);
+
+      if (isDirectiveBodyLine(line)) {
+        yield { type: 'directive-body', raw: line, position: linePosition };
+        if (hasNewline) {
+          yield this.newlineEvent(linePosition, line.length);
+        }
+        return;
       }
+
+      yield { type: 'directive-close', raw: '', position: linePosition };
+      this.state = 'IDLE';
+      this.directiveBodyMode = null;
+      yield* this.processLine(line, linePosition, hasNewline);
       return;
     }
 
@@ -122,7 +152,6 @@ export class StreamParser {
       if (hasNewline) {
         yield this.newlineEvent(linePosition, line.length);
       }
-      this.state = 'IDLE';
       return;
     }
 
@@ -140,8 +169,10 @@ export class StreamParser {
       return;
     }
 
-    if (trimmed.startsWith(':::')) {
+    const hasDirectiveMarker = /^:::\s*\S+/.test(trimmed) || /^:>\s*\S+/.test(trimmed);
+    if (parseDirectiveHeader(line) || hasDirectiveMarker) {
       this.state = 'DIRECTIVE_BODY';
+      this.directiveBodyMode = trimmed.startsWith(':::') ? 'legacy' : 'next';
       yield {
         type: 'directive-open',
         raw: line,

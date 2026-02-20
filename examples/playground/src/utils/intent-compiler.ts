@@ -1,9 +1,5 @@
 import type { IntentNode, IntentPlan } from '@texo-ui/core';
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function scalarToYaml(value: unknown): string {
   if (typeof value === 'string') {
     return JSON.stringify(value);
@@ -17,59 +13,25 @@ function scalarToYaml(value: unknown): string {
   return JSON.stringify(String(value));
 }
 
-function toYaml(value: unknown, indent = 0): string {
-  const pad = '  '.repeat(indent);
-  if (Array.isArray(value)) {
-    if (value.length === 0) {
-      return '[]';
-    }
-    return value
-      .map((entry) => {
-        if (isPlainObject(entry) || Array.isArray(entry)) {
-          return `${pad}- ${toYaml(entry, indent + 1).replace(/^\s+/, '')}`;
-        }
-        return `${pad}- ${scalarToYaml(entry)}`;
-      })
-      .join('\n');
-  }
-
-  if (isPlainObject(value)) {
-    const entries = Object.entries(value);
-    if (entries.length === 0) {
-      return '{}';
-    }
-    return entries
-      .map(([key, entry]) => {
-        if (Array.isArray(entry) || isPlainObject(entry)) {
-          return `${pad}${key}:\n${toYaml(entry, indent + 1)}`;
-        }
-        return `${pad}${key}: ${scalarToYaml(entry)}`;
-      })
-      .join('\n');
-  }
-
-  return `${pad}${scalarToYaml(value)}`;
-}
-
 function toDirective(
   node: IntentNode,
 ): { name: string; attributes: Record<string, unknown> } | null {
   switch (node.type) {
     case 'stack':
       return {
-        name: 'texo-stack',
+        name: 'stack',
         attributes: { title: node.title, direction: node.direction, gap: node.gap },
       };
     case 'grid':
-      return { name: 'texo-grid', attributes: { title: node.title, columns: node.columns } };
+      return { name: 'grid', attributes: { title: node.title, columns: node.columns } };
     case 'button':
       return {
-        name: 'texo-button',
+        name: 'button',
         attributes: { label: node.label, action: node.action, variant: node.variant },
       };
     case 'input':
       return {
-        name: 'texo-input',
+        name: 'input',
         attributes: {
           label: node.label,
           name: node.name,
@@ -78,10 +40,10 @@ function toDirective(
         },
       };
     case 'table':
-      return { name: 'texo-table', attributes: { columns: node.columns, rows: node.rows } };
+      return { name: 'table', attributes: { columns: node.columns, rows: node.rows } };
     case 'chart':
       return {
-        name: 'texo-chart',
+        name: 'chart',
         attributes: { chartType: node.chartType, labels: node.labels, series: node.series },
       };
     default:
@@ -103,9 +65,17 @@ export function compileIntentPlanToTexo(plan: IntentPlan): string {
     if (!directive) {
       continue;
     }
-    lines.push(`::: ${directive.name}`);
-    lines.push(toYaml(directive.attributes));
-    lines.push(':::');
+    lines.push(`:> ${directive.name}`);
+    Object.entries(directive.attributes).forEach(([key, value]) => {
+      if (value === undefined) {
+        return;
+      }
+      const serialized =
+        typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+          ? scalarToYaml(value)
+          : JSON.stringify(value);
+      lines.push(` - ${key}: ${serialized}`);
+    });
     lines.push('');
   }
 

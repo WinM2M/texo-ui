@@ -2,17 +2,17 @@ import type { CatalogComponent } from './types';
 
 export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
   {
-    name: 'texo-stack',
+    name: 'stack',
     summary: 'Linear layout container for arranging child blocks.',
     props: [
       { name: 'direction', type: 'row|column', description: 'Main axis direction.' },
       { name: 'gap', type: 'number', description: 'Gap between child nodes.' },
       { name: 'title', type: 'string', description: 'Optional heading text.' },
     ],
-    example: '::: texo-stack\ndirection: "column"\ngap: 12\ntitle: "Profile"\n:::',
+    example: ':> stack\n - direction: "column"\n - gap: 12\n - title: "Profile"',
   },
   {
-    name: 'texo-button',
+    name: 'button',
     summary: 'Action trigger button that emits an action payload.',
     props: [
       { name: 'label', type: 'string', required: true, description: 'Visible button text.' },
@@ -25,39 +25,38 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
       },
     ],
     example:
-      '::: texo-button\nlabel: "Save"\naction: "save-form"\nvariant: "primary"\nstylePreset: "raised"\n:::',
+      ':> button\n - label: "Save"\n - action: "save-form"\n - variant: "primary"\n - stylePreset: "raised"',
   },
   {
-    name: 'texo-input',
+    name: 'input',
     summary: 'Labeled input field for text-like values.',
     props: [
       { name: 'label', type: 'string', required: true, description: 'Field label.' },
       { name: 'name', type: 'string', required: true, description: 'Field key.' },
       { name: 'inputType', type: 'text|number|email|date', description: 'HTML input type.' },
     ],
-    example: '::: texo-input\nlabel: "Email"\nname: "email"\ninputType: "email"\n:::',
+    example: ':> input\n - label: "Email"\n - name: "email"\n - inputType: "email"',
   },
   {
-    name: 'texo-grid',
+    name: 'grid',
     summary: 'Grid layout helper for presenting cards and stats.',
     props: [
       { name: 'columns', type: 'number', description: 'Number of columns.' },
       { name: 'title', type: 'string', description: 'Optional heading text.' },
     ],
-    example: '::: texo-grid\ncolumns: 2\ntitle: "Overview"\n:::',
+    example: ':> grid\n - id: "overview"\n - rows: 1\n - columns: 2\n - title: "Overview"',
   },
   {
-    name: 'texo-table',
+    name: 'table',
     summary: 'Simple table renderer for row data.',
     props: [
       { name: 'columns', type: 'string[]', required: true, description: 'Ordered column keys.' },
       { name: 'rows', type: 'object[]', required: true, description: 'Data rows.' },
     ],
-    example:
-      '::: texo-table\ncolumns: ["name", "value"]\nrows:\n  - name: "CPU"\n    value: 42\n:::',
+    example: ':> table\n - columns: ["name", "value"]\n - rows: [{"name":"CPU","value":42}]',
   },
   {
-    name: 'texo-chart',
+    name: 'chart',
     summary: 'Lightweight chart-like visualization for numeric series.',
     props: [
       {
@@ -105,10 +104,10 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
       },
     ],
     example:
-      '::: texo-chart\nchartType: "line"\nxAxisMode: "date"\nxEditable: true\nstartDate: "2026-02-01"\nrangeStartDate: "2026-02-05"\nrangeEndDate: "2026-02-20"\ndayStep: 1\nlabels: ["1", "2", "3"]\nseries:\n  - name: "Sales"\n    values: [12, 18, 16]\n:::',
+      ':> chart\n - chartType: "line"\n - xAxisMode: "date"\n - xEditable: true\n - startDate: "2026-02-01"\n - rangeStartDate: "2026-02-05"\n - rangeEndDate: "2026-02-20"\n - dayStep: 1\n - labels: ["1", "2", "3"]\n - series: [{"name":"Sales","values":[12,18,16]}]',
   },
   {
-    name: 'texo-rect',
+    name: 'rect',
     summary: 'Draw a simple rectangle block using SVG.',
     props: [
       { name: 'width', type: 'number', description: 'Rectangle width in px.' },
@@ -118,11 +117,10 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
       { name: 'stroke', type: 'string', description: 'Border color.' },
       { name: 'strokeWidth', type: 'number', description: 'Border thickness.' },
     ],
-    example:
-      '::: texo-rect\nwidth: 240\nheight: 120\nradius: 12\nfill: "#1d4ed8"\nstroke: "#93c5fd"\nstrokeWidth: 2\n:::',
+    example: ':> rect 240x120 #1d4ed8\n - radius: 12\n - stroke: "#93c5fd"\n - strokeWidth: 2',
   },
   {
-    name: 'texo-svg',
+    name: 'svg',
     summary: 'Render custom SVG shapes from a declarative list.',
     props: [
       { name: 'width', type: 'number', description: 'Rendered max width in px.' },
@@ -137,6 +135,6 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
       },
     ],
     example:
-      '::: texo-svg\nwidth: 320\nheight: 180\nviewBox: "0 0 320 180"\nshapes:\n  - type: "rect"\n    x: 20\n    y: 20\n    width: 120\n    height: 80\n    rx: 10\n    fill: "#0ea5e9"\n  - type: "text"\n    x: 28\n    y: 66\n    fill: "#ffffff"\n    font-size: 14\n    text: "Hello SVG"\n:::',
+      ':> svg 320x180\n - viewBox: "0 0 320 180"\n - shapes: [{"type":"rect","x":20,"y":20,"width":120,"height":80,"rx":10,"fill":"#0ea5e9"},{"type":"text","x":28,"y":66,"fill":"#ffffff","font-size":14,"text":"Hello SVG"}]',
   },
 ];
