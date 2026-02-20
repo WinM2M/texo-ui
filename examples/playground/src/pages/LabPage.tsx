@@ -190,6 +190,9 @@ export function LabPage(): JSX.Element {
   );
   const [apiKey, setApiKey] = useState(initialPrefs?.apiKey ?? '');
   const [baseUrl, setBaseUrl] = useState(initialPrefs?.baseUrl ?? '');
+  const [isProviderPanelOpen, setIsProviderPanelOpen] = useState(
+    !(initialPrefs?.apiKey && initialPrefs.apiKey.trim().length > 0),
+  );
   const [prompt, setPrompt] = useState('Create a compact analytics dashboard with a filter form.');
   const [streamTextValue, setStreamTextValue] = useState('');
   const [editableStreamText, setEditableStreamText] = useState('');
@@ -333,6 +336,12 @@ export function LabPage(): JSX.Element {
     };
     globalThis.localStorage.setItem(LAB_PREFS_KEY, JSON.stringify(payload));
   }, [providerId, model, apiKey, baseUrl]);
+
+  useEffect(() => {
+    if (provider.requiresApiKey && apiKey.trim().length === 0) {
+      setIsProviderPanelOpen(true);
+    }
+  }, [provider.requiresApiKey, apiKey]);
 
   useEffect(() => {
     if (typeof globalThis.localStorage === 'undefined') {
@@ -623,50 +632,62 @@ export function LabPage(): JSX.Element {
           } as React.CSSProperties
         }
       >
-        <article className="panel">
+        <article className="panel lab-prompt-panel">
           <h3>Prompt</h3>
-          <div className="lab-controls">
-            <label>
-              Provider + Model
-              <select
-                className="lab-select"
-                value={selectedProviderModelValue}
-                onChange={(e) => onProviderModelChange(e.target.value)}
-              >
-                {providerModelOptions.map((option) => (
-                  <option
-                    key={`${option.providerId}-${option.model}`}
-                    value={`${option.providerId}::${option.model}`}
-                  >
-                    {option.providerLabel} / {option.model}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Base URL (optional)
-              <input
-                value={baseUrl}
-                onChange={(e) => setBaseUrl(e.target.value)}
-                className="lab-input"
-                placeholder={
-                  provider.id === 'anthropic'
-                    ? 'https://api.anthropic.com/v1'
-                    : provider.id === 'deepseek'
-                      ? 'https://api.deepseek.com/v1'
-                      : 'https://api.openai.com/v1'
-                }
-              />
-            </label>
-            <label>
-              API key {provider.requiresApiKey ? '(required)' : '(optional)'}
-              <input
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="lab-input"
-                placeholder={provider.id === 'anthropic' ? 'sk-ant-...' : 'sk-...'}
-              />
-            </label>
+          <div className="lab-provider-floating-wrap">
+            <button
+              type="button"
+              className="lab-provider-floating-toggle"
+              onClick={() => setIsProviderPanelOpen((prev) => !prev)}
+            >
+              {isProviderPanelOpen ? 'Hide Connection' : 'Show Connection'}
+            </button>
+            <div
+              className={`lab-controls lab-provider-floating${isProviderPanelOpen ? ' open' : ''}`}
+              aria-hidden={!isProviderPanelOpen}
+            >
+              <label>
+                Provider + Model
+                <select
+                  className="lab-select"
+                  value={selectedProviderModelValue}
+                  onChange={(e) => onProviderModelChange(e.target.value)}
+                >
+                  {providerModelOptions.map((option) => (
+                    <option
+                      key={`${option.providerId}-${option.model}`}
+                      value={`${option.providerId}::${option.model}`}
+                    >
+                      {option.providerLabel} / {option.model}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Base URL (optional)
+                <input
+                  value={baseUrl}
+                  onChange={(e) => setBaseUrl(e.target.value)}
+                  className="lab-input"
+                  placeholder={
+                    provider.id === 'anthropic'
+                      ? 'https://api.anthropic.com/v1'
+                      : provider.id === 'deepseek'
+                        ? 'https://api.deepseek.com/v1'
+                        : 'https://api.openai.com/v1'
+                  }
+                />
+              </label>
+              <label>
+                API key {provider.requiresApiKey ? '(required)' : '(optional)'}
+                <input
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="lab-input"
+                  placeholder={provider.id === 'anthropic' ? 'sk-ant-...' : 'sk-...'}
+                />
+              </label>
+            </div>
           </div>
           <textarea
             value={prompt}
