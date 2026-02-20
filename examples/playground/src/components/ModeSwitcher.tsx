@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 
 const MODES = [
-  { id: 'casual', label: 'Casual', icon: '🎮', color: '#ec4899', disabled: false },
-  { id: 'lab', label: 'Lab', icon: '🧪', color: '#f59e0b', disabled: false },
-  { id: 'pro', label: 'Pro (TBD)', icon: '🔧', color: '#2563eb', disabled: true },
-  { id: 'data', label: 'Data (TBD)', icon: '📊', color: '#14b8a6', disabled: true },
+  { id: 'casual', label: 'Casual', color: '#ec4899', disabled: false },
+  { id: 'lab', label: 'Lab', color: '#f59e0b', disabled: false },
+  { id: 'pro', label: 'Pro (TBD)', color: '#2563eb', disabled: true },
+  { id: 'data', label: 'Data (TBD)', color: '#14b8a6', disabled: true },
 ] as const;
 
 export function ModeSwitcher(): JSX.Element {
@@ -21,7 +21,6 @@ export function ModeSwitcher(): JSX.Element {
               title="TBD"
               style={{ opacity: 0.65 }}
             >
-              <span>{mode.icon}</span>
               <span>{mode.label}</span>
             </span>
           );
@@ -36,7 +35,6 @@ export function ModeSwitcher(): JSX.Element {
               background: active ? `${mode.color}22` : 'transparent',
             }}
           >
-            <span>{mode.icon}</span>
             <span>{mode.label}</span>
           </Link>
         );

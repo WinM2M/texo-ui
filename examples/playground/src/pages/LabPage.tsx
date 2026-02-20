@@ -18,6 +18,8 @@ import {
 } from '../utils/planner-providers';
 
 const LAB_PREFS_KEY = 'texo.lab.preferences.v1';
+const LAB_SPLIT_WIDTH_KEY = 'texo.lab.split-width.v1';
+const LAB_SPLIT_HEIGHT_KEY = 'texo.lab.split-height.v1';
 
 interface LabPreferences {
   providerId: PlannerProviderId;
@@ -64,10 +66,46 @@ function readLabPreferences(): LabPreferences | null {
   }
 }
 
+function readLabSplitWidth(): number | null {
+  if (typeof globalThis.localStorage === 'undefined') {
+    return null;
+  }
+  const raw = globalThis.localStorage.getItem(LAB_SPLIT_WIDTH_KEY);
+  if (!raw) {
+    return null;
+  }
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+  return Math.min(75, Math.max(25, parsed));
+}
+
+function readLabSplitHeight(): number | null {
+  if (typeof globalThis.localStorage === 'undefined') {
+    return null;
+  }
+  const raw = globalThis.localStorage.getItem(LAB_SPLIT_HEIGHT_KEY);
+  if (!raw) {
+    return null;
+  }
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+  return Math.min(1200, Math.max(220, parsed));
+}
+
 export function LabPage(): JSX.Element {
   const registry = useMemo(() => createRegistry(createBuiltInComponents()), []);
   const abortRef = useRef<AbortController | null>(null);
+  const pageRef = useRef<HTMLElement | null>(null);
+  const splitContainerRef = useRef<HTMLDivElement | null>(null);
+  const splitDragStateRef = useRef<{ startX: number; startLeftPercent: number } | null>(null);
+  const verticalDragStateRef = useRef<{ startY: number; startHeight: number } | null>(null);
   const initialPrefs = useMemo(() => readLabPreferences(), []);
+  const initialSplitWidth = useMemo(() => readLabSplitWidth(), []);
+  const initialSplitHeight = useMemo(() => readLabSplitHeight(), []);
 
   const [providerId, setProviderId] = useState<PlannerProviderId>(
     initialPrefs?.providerId ?? 'mock',
@@ -85,6 +123,10 @@ export function LabPage(): JSX.Element {
   const [actions, setActions] = useState<TexoAction[]>([]);
   const [recoveryEvents, setRecoveryEvents] = useState<RecoveryEvent[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [leftPanelWidthPercent, setLeftPanelWidthPercent] = useState(initialSplitWidth ?? 50);
+  const [isResizingPanels, setIsResizingPanels] = useState(false);
+  const [mainRowHeight, setMainRowHeight] = useState<number | null>(initialSplitHeight);
+  const [isResizingHeight, setIsResizingHeight] = useState(false);
   const [modelOptionsByProvider, setModelOptionsByProvider] = useState<
     Record<PlannerProviderId, string[]>
   >({
@@ -207,6 +249,98 @@ export function LabPage(): JSX.Element {
     globalThis.localStorage.setItem(LAB_PREFS_KEY, JSON.stringify(payload));
   }, [providerId, model, apiKey, baseUrl]);
 
+  useEffect(() => {
+    if (typeof globalThis.localStorage === 'undefined') {
+      return;
+    }
+    globalThis.localStorage.setItem(LAB_SPLIT_WIDTH_KEY, String(leftPanelWidthPercent));
+  }, [leftPanelWidthPercent]);
+
+  useEffect(() => {
+    if (typeof globalThis.localStorage === 'undefined') {
+      return;
+    }
+    if (mainRowHeight === null) {
+      globalThis.localStorage.removeItem(LAB_SPLIT_HEIGHT_KEY);
+      return;
+    }
+    globalThis.localStorage.setItem(LAB_SPLIT_HEIGHT_KEY, String(mainRowHeight));
+  }, [mainRowHeight]);
+
+  useEffect(() => {
+    if (!isResizingPanels) {
+      return;
+    }
+
+    const onPointerMove = (event: PointerEvent): void => {
+      const container = splitContainerRef.current;
+      const dragState = splitDragStateRef.current;
+      if (!container || !dragState) {
+        return;
+      }
+
+      const containerWidth = container.getBoundingClientRect().width;
+      if (containerWidth <= 0) {
+        return;
+      }
+
+      const deltaX = event.clientX - dragState.startX;
+      const deltaPercent = (deltaX / containerWidth) * 100;
+      const nextPercent = Math.min(75, Math.max(25, dragState.startLeftPercent + deltaPercent));
+      setLeftPanelWidthPercent(nextPercent);
+    };
+
+    const stopResize = (): void => {
+      splitDragStateRef.current = null;
+      setIsResizingPanels(false);
+    };
+
+    globalThis.addEventListener('pointermove', onPointerMove);
+    globalThis.addEventListener('pointerup', stopResize);
+    globalThis.addEventListener('pointercancel', stopResize);
+
+    return () => {
+      globalThis.removeEventListener('pointermove', onPointerMove);
+      globalThis.removeEventListener('pointerup', stopResize);
+      globalThis.removeEventListener('pointercancel', stopResize);
+    };
+  }, [isResizingPanels]);
+
+  useEffect(() => {
+    if (!isResizingHeight) {
+      return;
+    }
+
+    const onPointerMove = (event: PointerEvent): void => {
+      const page = pageRef.current;
+      const dragState = verticalDragStateRef.current;
+      if (!page || !dragState) {
+        return;
+      }
+
+      const deltaY = event.clientY - dragState.startY;
+      const pageRect = page.getBoundingClientRect();
+      const maxHeight = Math.max(260, pageRect.height - 180);
+      const nextHeight = Math.min(maxHeight, Math.max(220, dragState.startHeight + deltaY));
+      setMainRowHeight(nextHeight);
+    };
+
+    const stopResize = (): void => {
+      verticalDragStateRef.current = null;
+      setIsResizingHeight(false);
+    };
+
+    globalThis.addEventListener('pointermove', onPointerMove);
+    globalThis.addEventListener('pointerup', stopResize);
+    globalThis.addEventListener('pointercancel', stopResize);
+
+    return () => {
+      globalThis.removeEventListener('pointermove', onPointerMove);
+      globalThis.removeEventListener('pointerup', stopResize);
+      globalThis.removeEventListener('pointercancel', stopResize);
+    };
+  }, [isResizingHeight]);
+
   const cancel = (): void => {
     abortRef.current?.abort();
     abortRef.current = null;
@@ -273,14 +407,46 @@ export function LabPage(): JSX.Element {
     setEditableStreamText(streamTextValue);
   };
 
+  const startPanelResize = (event: React.PointerEvent<HTMLButtonElement>): void => {
+    splitDragStateRef.current = {
+      startX: event.clientX,
+      startLeftPercent: leftPanelWidthPercent,
+    };
+    setIsResizingPanels(true);
+  };
+
+  const startVerticalResize = (event: React.PointerEvent<HTMLButtonElement>): void => {
+    const container = splitContainerRef.current;
+    if (!container) {
+      return;
+    }
+    verticalDragStateRef.current = {
+      startY: event.clientY,
+      startHeight: container.getBoundingClientRect().height,
+    };
+    setIsResizingHeight(true);
+  };
+
   return (
-    <section className="lab-page">
+    <section
+      className={`lab-page${isResizingHeight ? ' lab-page--resizing-height' : ''}`}
+      ref={pageRef}
+    >
       <header className="lab-header">
         <h2>Generative Lab</h2>
         <p>Prompt -&gt; LLM Texo Stream -&gt; Built-in UI rendering</p>
       </header>
 
-      <div className="lab-main-row">
+      <div
+        className={`lab-main-row${isResizingPanels ? ' lab-main-row--resizing' : ''}`}
+        ref={splitContainerRef}
+        style={
+          {
+            '--lab-left-panel-width': `${leftPanelWidthPercent}%`,
+            ...(mainRowHeight ? { height: `${mainRowHeight}px` } : {}),
+          } as React.CSSProperties
+        }
+      >
         <article className="panel">
           <h3>Prompt</h3>
           <div className="lab-controls">
@@ -350,6 +516,14 @@ export function LabPage(): JSX.Element {
           ) : null}
         </article>
 
+        <button
+          type="button"
+          className="lab-pane-divider"
+          aria-label="Resize prompt and rendered UI panels"
+          aria-orientation="vertical"
+          onPointerDown={startPanelResize}
+        />
+
         <article className="panel lab-render-panel">
           <h3>Rendered UI</h3>
           <TexoRenderer
@@ -362,6 +536,14 @@ export function LabPage(): JSX.Element {
           />
         </article>
       </div>
+
+      <button
+        type="button"
+        className="lab-height-divider"
+        aria-label="Resize prompt/rendered area height"
+        aria-orientation="horizontal"
+        onPointerDown={startVerticalResize}
+      />
 
       <div className="lab-details">
         <details className="panel lab-detail">
