@@ -1,24 +1,30 @@
 {
   "name": "@texo-ui/kit",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "description": "The built-in Texo component vocabulary, plus the catalog that teaches it to an LLM.",
+  "keywords": [
+    "llm",
+    "generative-ui",
+    "react",
+    "components",
+    "design-system",
+    "texo"
+  ],
+  "license": "MIT",
+  "author": "Youngjune Kwon",
+  "homepage": "https://github.com/WinM2M/texo-ui#readme",
+  "bugs": {
+    "url": "https://github.com/WinM2M/texo-ui/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WinM2M/texo-ui.git",
+    "directory": "packages/kit"
+  },
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
-    "test": "vitest run --passWithNoTests",
-    "lint": "eslint \"src/**/*.{ts,tsx}\""
-  },
-  "dependencies": {
-    "@texo-ui/react": "^0.0.1"
-  },
-  "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -30,5 +36,20 @@
   "files": [
     "dist"
   ],
-  "sideEffects": false
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@texo-ui/react": "^0.1.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

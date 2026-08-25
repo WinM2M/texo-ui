@@ -3,4 +3,5 @@ export * from './context';
 export * from './hooks';
 export * from './reconciler';
 export * from './registry';
+export * from './styles/base-styles';
 export * from './types';

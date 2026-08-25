@@ -396,7 +396,7 @@ export function TexoLabel(props: Record<string, unknown>): React.ReactElement {
     <p
       style={{
         margin: '8px 0',
-        color: 'var(--texo-theme-foreground, var(--text, #e5e7eb))',
+        color: 'var(--texo-theme-foreground, #0f172a)',
         fontSize: '18px',
         fontWeight: 700,
         textAlign: 'center',

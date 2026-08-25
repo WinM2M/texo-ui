@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Texo — live model</title>
+
+    <!-- The whole framework. Texo.primer is the system prompt that teaches the model
+         the directive syntax; it ships inside this bundle. -->
+    <script src="./cdn/texo.min.js"></script>
+
+    <style>
+      body { font: 15px/1.6 system-ui, sans-serif; background: #0b1220; color: #e2e8f0;
+             margin: 0; padding: 20px; }
+      main { max-width: 760px; margin: 0 auto; }
+      h1 { font-size: 19px; margin: 0 0 4px; }
+      p.sub { margin: 0 0 16px; color: #94a3b8; font-size: 13px; }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+      input, select, textarea, button {
+        font: inherit; background: #111a2e; color: #e2e8f0;
+        border: 1px solid #1e293b; border-radius: 8px; padding: 8px 10px;
+      }
+      input[type="password"] { flex: 1 1 320px; }
+      textarea { width: 100%; box-sizing: border-box; height: 70px; }
+      button.go { background: #1d4ed8; border-color: #60a5fa; cursor: pointer; }
+      .warn { font-size: 12px; color: #fbbf24; margin: 0 0 16px; }
+      #out { margin-top: 16px; min-height: 100px; }
+      #status { font: 12px ui-monospace, monospace; color: #94a3b8; margin-top: 10px;
+                white-space: pre-wrap; }
+    </style>
+  </head>
+
+  <body>
+    <main>
+      <h1>Texo — drive it with a live model</h1>
+      <p class="sub">
+        Your prompt goes to the provider with <code>Texo.primer</code> as the system message.
+        The response streams straight into <code>ui.stream()</code>, so the interface builds
+        while the model is still writing.
+      </p>
+
+      <p class="warn">
+        Your key stays in this tab and is sent only to the provider you pick. Never paste a
+        key into a public playground you save and share.
+      </p>
+
+      <div class="row">
+        <select id="provider">
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+        </select>
+        <input id="model" value="gpt-4o-mini" size="20" />
+        <input id="key" type="password" placeholder="API key (kept in this tab only)" />
+      </div>
+
+      <textarea id="prompt">A dashboard for tomorrow's weather in Seoul. Dark theme.</textarea>
+
+      <div class="row">
+        <button class="go" id="run" type="button">Generate UI</button>
+      </div>
+
+      <div id="out"></div>
+      <div id="status"></div>
+    </main>
+
+    <script>
+      var ui = Texo.init('#out');
+      var status = document.getElementById('status');
+
+      ui.on('action', function (action) {
+        status.textContent = 'action -> ' + JSON.stringify(action);
+      });
+
+      document.getElementById('provider').addEventListener('change', function (e) {
+        document.getElementById('model').value =
+          e.target.value === 'anthropic' ? 'claude-sonnet-4-5' : 'gpt-4o-mini';
+      });
+
+      async function generate() {
+        var provider = document.getElementById('provider').value;
+        var model = document.getElementById('model').value.trim();
+        var key = document.getElementById('key').value.trim();
+        var prompt = document.getElementById('prompt').value.trim();
+
+        if (!key) { status.textContent = 'Enter an API key first.'; return; }
+
+        ui.reset();
+        status.textContent = 'streaming...';
+
+        var url, headers, body;
+        if (provider === 'anthropic') {
+          url = 'https://api.anthropic.com/v1/messages';
+          headers = {
+            'content-type': 'application/json',
+            'x-api-key': key,
+            'anthropic-version': '2023-06-01',
+            // Required for calls made straight from a browser.
+            'anthropic-dangerous-direct-browser-access': 'true'
+          };
+          body = { model: model, max_tokens: 2048, stream: true,
+                   system: Texo.primer,
+                   messages: [{ role: 'user', content: prompt }] };
+        } else {
+          url = 'https://api.openai.com/v1/chat/completions';
+          headers = { 'content-type': 'application/json', authorization: 'Bearer ' + key };
+          body = { model: model, stream: true,
+                   messages: [{ role: 'system', content: Texo.primer },
+                              { role: 'user', content: prompt }] };
+        }
+
+        var res;
+        try {
+          res = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+        } catch (err) {
+          status.textContent = 'Request blocked: ' + err.message +
+            '\nBrowsers enforce CORS here; some providers refuse direct calls.';
+          return;
+        }
+
+        if (!res.ok) {
+          status.textContent = 'HTTP ' + res.status + '\n' + (await res.text()).slice(0, 300);
+          return;
+        }
+
+        // Server-sent events -> text deltas -> ui.stream(). Texo renders each chunk as it
+        // lands; there is no point at which it waits for the whole response.
+        var reader = res.body.getReader();
+        var decoder = new TextDecoder();
+        var buffer = '';
+
+        while (true) {
+          var step = await reader.read();
+          if (step.done) break;
+          buffer += decoder.decode(step.value, { stream: true });
+
+          var lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (!line.startsWith('data:')) continue;
+            var payload = line.slice(5).trim();
+            if (!payload || payload === '[DONE]') continue;
+
+            var delta = '';
+            try {
+              var json = JSON.parse(payload);
+              delta = provider === 'anthropic'
+                ? (json.delta && json.delta.text) || ''
+                : (json.choices && json.choices[0] && json.choices[0].delta &&
+                   json.choices[0].delta.content) || '';
+            } catch (e) { continue; }
+
+            if (delta) ui.stream(delta);
+          }
+        }
+
+        ui.end();
+        status.textContent = 'done';
+      }
+
+      document.getElementById('run').addEventListener('click', generate);
+    </script>
+  </body>
+</html>

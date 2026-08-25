@@ -1,31 +1,31 @@
 {
   "name": "@texo-ui/core",
-  "version": "0.0.1",
-  "description": "Streaming Markdown/YAML parser for Texo",
+  "version": "0.1.0",
+  "description": "Stream-first parser that turns LLM text into a UI tree. Platform independent.",
+  "keywords": [
+    "llm",
+    "streaming",
+    "parser",
+    "generative-ui",
+    "markdown",
+    "ast",
+    "texo"
+  ],
+  "license": "MIT",
+  "author": "Youngjune Kwon",
+  "homepage": "https://github.com/WinM2M/texo-ui#readme",
+  "bugs": {
+    "url": "https://github.com/WinM2M/texo-ui/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WinM2M/texo-ui.git",
+    "directory": "packages/core"
+  },
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
-    "test": "vitest run --passWithNoTests",
-    "lint": "eslint \"src/**/*.{ts,tsx}\""
-  },
-  "keywords": [
-    "texo",
-    "parser",
-    "streaming",
-    "llm",
-    "ui"
-  ],
-  "author": "Youngjune Kwon",
-  "license": "MIT",
-  "dependencies": {
-    "yaml": "^2.3.4"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -37,5 +37,17 @@
   "files": [
     "dist"
   ],
-  "sideEffects": false
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "yaml": "^2.3.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

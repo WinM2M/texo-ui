@@ -1,3 +1,4 @@
+import type { CatalogComponent } from '@texo-ui/kit';
 import type { RecoveryConfig } from '@texo-ui/core';
 import type { ComponentRenderFunction } from './adapters/vanilla-adapter';
 
@@ -22,4 +23,8 @@ export interface TexoInitOptions {
 export interface TexoGlobal {
   init(selector: string | HTMLElement, options?: TexoInitOptions): TexoInstance;
   version: string;
+  /** System prompt that teaches a model the Texo directive syntax. */
+  primer: string;
+  /** Machine-readable description of every component a model may invoke. */
+  catalog: readonly CatalogComponent[];
 }

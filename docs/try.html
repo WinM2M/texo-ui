@@ -13,14 +13,17 @@
                  background: #111a2e; color: #e2e8f0; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; }
       button.run { margin: 12px 0 20px; padding: 8px 16px; border-radius: 8px; border: 1px solid #60a5fa;
                    background: #1d4ed8; color: #fff; font-size: 14px; cursor: pointer; }
-      #out { border: 1px solid #1e293b; border-radius: 10px; padding: 12px; min-height: 120px; background: #0f172a; }
+      /* No styling for #out: the `:> theme` directive in the stream paints it. */
+      #out { min-height: 120px; }
       #log { color: #94a3b8; font: 12px ui-monospace, monospace; margin-top: 12px; }
     </style>
   </head>
   <body>
     <main>
       <h1>Texo — drop-in example</h1>
-      <p>One script tag, no build step. Edit the stream and press Run.</p>
+      <p><a href="./live.html" style="color:#60a5fa">Drive it with a live model &rarr;</a></p>
+      <p>One script tag, no build step. The result pane below has no CSS of its own &mdash;
+         the <code>:&gt; theme</code> directive in the stream styles it. Edit and press Run.</p>
 
       <textarea id="src">
 Here is the analysis of your server costs:
