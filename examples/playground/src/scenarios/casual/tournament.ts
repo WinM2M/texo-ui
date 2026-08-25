@@ -3,10 +3,38 @@ import type { Scenario } from '../../utils/stream-simulator';
 export const tournamentScenario: Scenario = {
   id: 'tournament',
   name: 'Lunch Tournament',
-  category: 'casual',
   systemPrompt:
-    'Generate a lunch vote flow with texo-stack, texo-input, texo-button, texo-table. Apply a dark-theme preset.',
-  content: `Lunch decision round\n\n::: texo-stack\ntitle: "Lunch Tournament Lite"\ndirection: "column"\ngap: 12\n:::\n\n::: texo-input\nlabel: "Candidate A"\nname: "candidateA"\nplaceholder: "Bibimbap"\n:::\n\n::: texo-input\nlabel: "Candidate B"\nname: "candidateB"\nplaceholder: "Kalguksu"\n:::\n\n::: texo-button\nlabel: "Vote Candidate A"\naction: "vote-a"\nvariant: "primary"\n:::\n\n::: texo-button\nlabel: "Vote Candidate B"\naction: "vote-b"\nvariant: "secondary"\n:::\n\n::: texo-table\ncolumns: ["option", "votes"]\nrows:\n  - option: "Candidate A"\n    votes: 12\n  - option: "Candidate B"\n    votes: 9\n:::`,
+    'Generate a lunch vote flow with stack, input, button, table. Apply a dark-theme preset.',
+  content: `Lunch decision round
+
+:> stack
+ - title: "Lunch Tournament Lite"
+ - direction: "column"
+ - gap: 12
+
+:> input
+ - label: "Candidate A"
+ - name: "candidateA"
+ - placeholder: "Bibimbap"
+
+:> input
+ - label: "Candidate B"
+ - name: "candidateB"
+ - placeholder: "Kalguksu"
+
+:> button
+ - label: "Vote Candidate A"
+ - action: "vote-a"
+ - variant: "primary"
+
+:> button
+ - label: "Vote Candidate B"
+ - action: "vote-b"
+ - variant: "secondary"
+
+:> table
+ - columns: ["option","votes"]
+ - rows: [{"option":"Candidate A","votes":12},{"option":"Candidate B","votes":9}]`,
   chunkDelay: 30,
   chunkSize: 5,
 };

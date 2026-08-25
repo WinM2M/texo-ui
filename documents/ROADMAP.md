@@ -8,7 +8,7 @@ We redefine software not as a pre-built "Product," but as a "Stream" generated o
 
 ### 1.2. Key Goals
 1.  **Stream-First:** Renders UI instantly as text flows, without waiting for JSON completion.
-2.  **Platform Agnostic:** Works everywhere—React, React Native, and **Legacy Web (CDN Script)**.
+2.  **Platform Agnostic:** The parser is renderer-independent. React and **Legacy Web (CDN Script)** ship today; React Native is planned.
 3.  **BYOS (Bring Your Own Storage):** Implements "LLM-era Serverless" by using the user's local storage or cloud (Google Drive, Notion) as the DB.
 
 ---
@@ -17,7 +17,7 @@ We redefine software not as a pre-built "Product," but as a "Stream" generated o
 
 ### 📦 1. `@texo-ui/core` (The Brain)
 * **Role:** Platform-independent parsing and state management engine.
-* **Features:** Streaming Parser, Directive Detection (`::: component`), Fault Tolerance.
+* **Features:** Streaming Parser, Directive Detection (`:> component`, with legacy `::: component` still accepted), Fault Tolerance.
 
 ### 📦 2. `@texo-ui/react` (The Renderer)
 * **Role:** Renderer for Web (React) environments.
@@ -27,78 +27,59 @@ We redefine software not as a pre-built "Product," but as a "Stream" generated o
 * **Role:** CDN-ready bundle for use via a single `script` tag.
 * **Features:** All-in-One Bundle (React+Core), Global API (`window.Texo`), Shadow DOM isolation.
 
-### 📦 4. `@texo-ui/data-adapter` (The Connector)
+### 📦 4. `@texo-ui/kit` (The Vocabulary)
+* **Role:** The built-in primitive components the LLM is allowed to invoke, plus the machine-readable catalog describing them.
+* **Primitives:** `stack`, `grid`, `button`, `checkbox`, `input`, `label`, `table`, `chart`, `rect`, `svg`.
+* **Catalog:** `BUILTIN_COMPONENT_CATALOG` carries each primitive's props/types/examples and feeds `TEXO_STREAM_PRIMER`, so the prompt the LLM receives is derived from the components that actually exist.
+
+### 📦 5. `@texo-ui/data-adapter` (The Connector)
 * **Role:** Middleware between UI and Data Storage.
 * **Drivers:** `LocalStorageDriver`, `GoogleDriveDriver` (AppData folder), `NotionDriver`, `RemoteHttpDriver`.
 
 ---
 
-## 3. Detailed Specifications: The Playground Content
+## 3. Component Doctrine: Primitives, Not Bespoke Components
 
-The **Texo Playground** will serve as the primary showcase, demonstrating the framework's versatility across three distinct categories.
+### 3.1. Direction change (2026-02-13, commit `00d030c`)
 
-### Category A: Casual & Gamification (The "Wow" Factor)
-*Target: General users experiencing "App Generation" for the first time.*
+The original plan (section 3 of the first draft of this document) specified one bespoke
+component per demo — `tournament-bracket`, `tarot-deck`, `meme-editor`, `image-picker`,
+`inventory-grid`, `auto-dashboard`, `interactive-chart`, `dynamic-form`, `api-request-form`,
+`code-visualizer`, `decision-matrix`, `settlement-calculator`, `expense-list` — and 13
+playground scenarios that invoked them.
 
-1.  **Lunch Menu World Cup (Tournament UI):**
-    * *Concept:* Solves decision paralysis via an interactive tournament bracket.
-    * *Component:* `::: tournament-bracket`
-    * *Interaction:* User clicks winners → Final result sent back to LLM for restaurant recommendation.
-2.  **Tarot Reading (Interactive Animation):**
-    * *Concept:* Digital tarot deck with flip animations to simulate "hand-feel."
-    * *Component:* `::: tarot-deck`
-    * *Interaction:* Shuffle animation → User picks a card → Card reveals → LLM interprets the result.
-3.  **Meme Generator (Canvas Editor):**
-    * *Concept:* User describes a scene, LLM generates a base image (via external API), and Texo provides a text editor overlay.
-    * *Component:* `::: meme-editor`
-    * *Interaction:* Drag & drop text bubbles, add stickers, export as image.
-4.  **Vibe Picker (Visual Preference):**
-    * *Concept:* Selects perfume/interior styles based on images rather than text.
-    * *Component:* `::: image-picker { mode: 'multi-select' }`
-5.  **RPG Inventory (Gamified List):**
-    * *Concept:* Visualizes game items (Potion, Sword) in a grid instead of text lists.
-    * *Component:* `::: inventory-grid`
-    * *Interaction:* Drag item to "Use", updates state via LLM.
+**That plan was withdrawn.** A demo whose UI comes from a component written specifically for
+that demo does not demonstrate Texo; it demonstrates React. The framework's claim is that an
+LLM can *compose* an interactive UI out of a fixed, general vocabulary — so the vocabulary is
+the product, and the demos must be built from it like anyone else's would be.
 
-### Category B: Professional & Engineering (The "Tool" Factor)
-*Target: Developers and professionals needing instant utilities.*
+Consequently:
 
-1.  **Instant API Client (Postman-alternative):**
-    * *Concept:* Paste a Swagger JSON or describe an API, and Texo generates a test form.
-    * *Component:* `::: api-request-form`
-    * *Features:* Auth headers input, Body JSON editor, Send button, Response viewer.
-2.  **Regex/SQL Visualizer (Code Explainer):**
-    * *Concept:* Visualizes complex code (Regex/SQL) as diagrams.
-    * *Component:* `::: code-visualizer`
-    * *Interaction:* User types email → Live validation feedback (Pass/Fail).
-3.  **Decision Matrix (Weighted Scoring):**
-    * *Concept:* Helps choose between options (e.g., Job Offers) based on weighted criteria.
-    * *Component:* `::: decision-matrix`
-    * *Interaction:* Sliders for weight (Salary 50%, Distance 30%) updates real-time ranking charts.
-4.  **Fairness Calculator (Settlement):**
-    * *Concept:* Dutch-pay calculator with complex conditions (drank alcohol vs. didn't).
-    * *Component:* `::: settlement-calculator`
-    * *Interaction:* Toggle user conditions → Real-time per-person cost update.
+* All demo-specific directive components were deleted.
+* The vocabulary is the primitive set in `@texo-ui/kit` (section 2, package 4).
+* Playground scenarios are composed exclusively from those primitives.
+* Extending the vocabulary is the **integrator's** job: register your own components alongside
+  `createBuiltInComponents()`. Texo ships primitives, not domain widgets.
 
-### Category C: Data & Admin (The "Insight" Factor)
-*Target: Data analysts and business users (Proveri context).*
+### 3.2. Consequences for the playground
 
-1.  **Instant Admin (JSON to Dashboard):**
-    * *Concept:* "Make this messy JSON readable."
-    * *Component:* `::: auto-dashboard`
-    * *Features:* Auto-detects data types (Color, Date, Image URL) and renders appropriate widgets.
-2.  **Interactive Drill-down Chart:**
-    * *Concept:* Deep-dive into sales/stat data.
-    * *Component:* `::: interactive-chart`
-    * *Interaction:* Click bar (Aug Sales) → LLM receives event → Renders detailed breakdown of August.
-3.  **Hyper-Personalized Form:**
-    * *Concept:* Dynamic insurance claim form showing *only* relevant fields.
-    * *Component:* `::: dynamic-form`
-    * *Feature:* Pre-filled fields based on conversation history, removing "N/A" sections.
-4.  **BYOS Expense Tracker (Google Drive Demo):**
-    * *Concept:* Serverless app connected to user's cloud.
-    * *Component:* `::: expense-list { source: 'google-drive' }`
-    * *Tech:* Uses `@texo-ui/data-adapter` to read/write `expenses.json` in user's GDrive.
+The playground has two surfaces, both built on the primitive vocabulary:
+
+1.  **Lab** (`/lab`) — connect a live LLM provider, send a prompt with `TEXO_STREAM_PRIMER`,
+    and watch real generated output stream into UI.
+2.  **Demos** (`/demos`) — canned streams replayed through the parser at controllable speed,
+    with the AST and recovery events visible in the debug console. Useful for reproducing
+    parser behaviour without burning tokens.
+
+A scenario is only valid if every directive it contains resolves to a registered component and
+is documented in the catalog; this is enforced by test, not by review.
+
+### 3.3. What growing the vocabulary means
+
+New expressive power should arrive as **new primitives or new props on existing primitives**,
+justified by being reusable across unrelated use cases — not as a new named component per
+scenario. `chart`'s drilldown/date-axis props and `grid`'s span protocol are the intended
+shape of such growth.
 
 ---
 
@@ -110,7 +91,7 @@ The **Texo Playground** will serve as the primary showcase, demonstrating the fr
 3.  **Fallback:** Error boundary implementation.
 
 ### Phase 2: Accessibility (`@texo-ui/standalone`)
-1.  **Bundling:** Single-file build (`texo.min.js`) via Vite/Rollup.
+1.  **Bundling:** Single-file build (`texo.iife.js` / `texo.umd.cjs`) via Vite.
 2.  **Shadow DOM:** Style isolation logic.
 3.  **Event Bus:** External script communication bridge.
 
@@ -119,9 +100,16 @@ The **Texo Playground** will serve as the primary showcase, demonstrating the fr
 2.  **Implement Drivers:** `LocalStorage` and `GoogleDrive` (OAuth flow).
 
 ### Phase 4: Playground Construction
-1.  **Component Library:** Implement the specific components listed in Section 3 (Tournament, Tarot, API Form, etc.).
-2.  **Scenario Scrips:** Write system prompts for LLMs to generate the specific Markdown Directives for each use case.
-3.  **Demo Site:** Deploy to Vercel with a "Mode Switcher" (Casual / Pro / Data).
+1.  **Primitive Library:** Implement and document the `@texo-ui/kit` primitives (see section 3).
+2.  **Lab:** Live provider/model selection, prompt composition from `TEXO_STREAM_PRIMER`, streaming render.
+3.  **Demos:** Canned scenarios composed from primitives, replayed through the real parser.
+4.  **Demo Site:** Published to GitHub Pages from `docs/`.
+
+### Phase 5: Engineering Hardening (current)
+1.  **CI:** lint + build + test on every push and pull request.
+2.  **Rendering coverage:** tests for the kit primitives and the React reconciler.
+3.  **Conformance:** automated check that scenarios and docs only use components that exist.
+4.  **Storybook:** visual workbench for `@texo-ui/kit`, sharing a single source of truth with the catalog.
 
 ---
 
@@ -129,11 +117,11 @@ The **Texo Playground** will serve as the primary showcase, demonstrating the fr
 
 * **Language:** TypeScript (Strict Mode).
 * **Testing:** Unit tests for Parser > 80% coverage.
-* **Documentation:** `README.md` must include the "System Prompt" required to generate the specific UI components (e.g., "How to prompt for a Tarot Deck").
+* **Documentation:** `README.md` must show the current directive syntax and only reference components that exist in `@texo-ui/kit`. The LLM-facing prompt is generated from the catalog, never hand-maintained in prose.
 * **Design System:** Use a lightweight CSS-in-JS or Tailwind (scoped) for the built-in component library to ensure portability.
 
 ## 6. Deliverables
 
-1.  **NPM Packages:** `@texo-ui/core`, `@texo-ui/react`, `@texo-ui/standalone`, `@texo-ui/data-adapter`.
+1.  **NPM Packages:** `@texo-ui/core`, `@texo-ui/react`, `@texo-ui/kit`, `@texo-ui/standalone`, `@texo-ui/data-adapter`.
 2.  **Source Code:** Monorepo with `examples/playground`.
-3.  **Live Demo:** A web page demonstrating all 13 use cases listed above, with a working Google Drive integration.
+3.  **Live Demo:** Published playground with a live Lab and canned Demos, both composed from the primitive vocabulary.

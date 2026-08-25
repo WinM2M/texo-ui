@@ -1,7 +1,6 @@
 export interface Scenario {
   id: string;
   name: string;
-  category: 'casual' | 'pro' | 'data';
   systemPrompt: string;
   content: string;
   chunkDelay?: number;

@@ -64,9 +64,6 @@ a {
   border-radius: 999px;
 }
 
-.mode-link--disabled {
-  cursor: not-allowed;
-}
 
 .landing {
   display: grid;
@@ -89,14 +86,8 @@ a {
   border-radius: 10px;
   border: 1px solid var(--line);
 }
-.category-card.casual {
-  background: linear-gradient(120deg, #ec489920, transparent);
-}
-.category-card.pro {
-  background: linear-gradient(120deg, #2563eb20, transparent);
-}
-.category-card.data {
-  background: linear-gradient(120deg, #14b8a620, transparent);
+.category-card.demos {
+  border-color: #2563eb;
 }
 .category-card.lab {
   background: linear-gradient(120deg, #f59e0b22, transparent);

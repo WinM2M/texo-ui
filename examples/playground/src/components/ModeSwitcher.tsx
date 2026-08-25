@@ -1,9 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 
 const MODES = [
-  { id: 'lab', label: 'Lab', color: '#f59e0b', disabled: false },
-  { id: 'pro', label: 'Pro (TBD)', color: '#2563eb', disabled: true },
-  { id: 'data', label: 'Data (TBD)', color: '#14b8a6', disabled: true },
+  { id: 'lab', label: 'Lab', color: '#f59e0b' },
+  { id: 'demos', label: 'Demos', color: '#2563eb' },
 ] as const;
 
 export function ModeSwitcher(): JSX.Element {
@@ -12,18 +11,6 @@ export function ModeSwitcher(): JSX.Element {
     <nav className="mode-switcher">
       {MODES.map((mode) => {
         const active = location.pathname.startsWith(`/${mode.id}`);
-        if (mode.disabled) {
-          return (
-            <span
-              key={mode.id}
-              className="mode-link mode-link--disabled"
-              title="TBD"
-              style={{ opacity: 0.65 }}
-            >
-              <span>{mode.label}</span>
-            </span>
-          );
-        }
         return (
           <Link
             key={mode.id}

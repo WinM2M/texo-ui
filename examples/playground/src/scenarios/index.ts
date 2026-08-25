@@ -15,10 +15,6 @@ export const allScenarios: Scenario[] = [
   inventoryScenario,
 ];
 
-export function scenariosByCategory(category: Scenario['category']): Scenario[] {
-  return allScenarios.filter((scenario) => scenario.category === category);
-}
-
-export function findScenario(category: Scenario['category'], id: string): Scenario | undefined {
-  return allScenarios.find((scenario) => scenario.category === category && scenario.id === id);
+export function findScenario(id: string): Scenario | undefined {
+  return allScenarios.find((scenario) => scenario.id === id);
 }

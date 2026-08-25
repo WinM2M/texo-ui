@@ -11,11 +11,8 @@ export function LandingPage(): JSX.Element {
         <pre>{`LLM Stream -> @texo-ui/core Parser -> AST -> @texo-ui/react Renderer -> Interactive UI`}</pre>
       </div>
       <div className="category-cards">
-        <Link to="/pro" className="category-card pro">
-          🔧 Pro
-        </Link>
-        <Link to="/data" className="category-card data">
-          📊 Data
+        <Link to="/demos" className="category-card demos">
+          🎬 Demos
         </Link>
         <Link to="/lab" className="category-card lab">
           🧪 Generative Lab
