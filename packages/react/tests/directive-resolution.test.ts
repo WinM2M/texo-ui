@@ -2,7 +2,7 @@ import { TexoPipeline } from '@texo-ui/core';
 import type { ASTNode, DirectiveNode } from '@texo-ui/core';
 import { describe, expect, it } from 'vitest';
 import { createBuiltInComponents } from '../../kit/src/registry';
-import { LAYOUT_DIRECTIVES } from '../src/reconciler';
+import { RECONCILER_DIRECTIVES } from '../src/reconciler';
 
 function directiveNames(content: string): string[] {
   const pipeline = new TexoPipeline();
@@ -29,9 +29,9 @@ describe('directive name resolution contract', () => {
     }
   });
 
-  it('layout directives are not registry components', () => {
+  it('reconciler-owned directives are not registry components', () => {
     const registry = createBuiltInComponents();
-    for (const name of LAYOUT_DIRECTIVES) {
+    for (const name of RECONCILER_DIRECTIVES) {
       expect(registry[name]).toBeUndefined();
     }
   });

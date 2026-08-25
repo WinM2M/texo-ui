@@ -7,6 +7,9 @@ export const inventoryScenario: Scenario = {
     'Generate inventory management UI using table, button, chart. Apply a dark-theme preset.',
   content: `Manage your inventory
 
+:> theme
+ - preset: "midnight-dark"
+
 :> table
  - columns: ["item","qty","rarity"]
  - rows: [{"item":"Health Potion","qty":3,"rarity":"common"},{"item":"Flame Sword","qty":1,"rarity":"legendary"},{"item":"Mana Elixir","qty":5,"rarity":"rare"}]

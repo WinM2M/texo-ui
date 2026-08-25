@@ -7,6 +7,9 @@ export const vibePickerScenario: Scenario = {
     'Generate a preference picker with button and chart. Apply a dark-theme preset.',
   content: `Choose your interior vibe
 
+:> theme
+ - preset: "midnight-dark"
+
 :> grid
  - title: "Select up to 2 vibes"
  - columns: 2

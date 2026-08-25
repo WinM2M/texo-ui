@@ -7,6 +7,9 @@ export const tarotScenario: Scenario = {
     'Generate tarot-like mood UI using grid, button, table. Apply a dark-theme preset.',
   content: `Daily card guidance
 
+:> theme
+ - preset: "midnight-dark"
+
 :> grid
  - title: "Pick one card"
  - columns: 3

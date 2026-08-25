@@ -17,11 +17,19 @@ interface GridCellDef {
 }
 
 /**
- * Directives the reconciler renders itself instead of resolving through the component
- * registry. `grid` is a layout container: it owns cell geometry and the mount protocol,
- * so it never reaches a registry component.
+ * Directives the reconciler handles itself instead of resolving through the component
+ * registry.
+ *
+ * `grid` is a layout container: it owns cell geometry and the mount protocol.
+ * `theme` is a control directive: it sets CSS custom properties on a scope and renders
+ * nothing of its own.
+ *
+ * Neither ever reaches a registry component, but both are part of the vocabulary an LLM
+ * may emit, so both must be documented in the catalog.
  */
 export const LAYOUT_DIRECTIVES = ['grid'] as const;
+export const CONTROL_DIRECTIVES = ['theme'] as const;
+export const RECONCILER_DIRECTIVES = [...LAYOUT_DIRECTIVES, ...CONTROL_DIRECTIVES] as const;
 
 interface GridEntry {
   kind: 'grid';

@@ -1,11 +1,11 @@
 import { TexoPipeline } from '@texo-ui/core';
 import type { ASTNode, DirectiveNode } from '@texo-ui/core';
 import { BUILTIN_COMPONENT_CATALOG, createBuiltInComponents } from '@texo-ui/kit';
-import { LAYOUT_DIRECTIVES } from '@texo-ui/react';
+import { RECONCILER_DIRECTIVES } from '@texo-ui/react';
 import { describe, expect, it } from 'vitest';
 import { allScenarios } from '../scenarios';
 
-const resolvable = new Set([...Object.keys(createBuiltInComponents()), ...LAYOUT_DIRECTIVES]);
+const resolvable = new Set([...Object.keys(createBuiltInComponents()), ...RECONCILER_DIRECTIVES]);
 const documented = new Set(BUILTIN_COMPONENT_CATALOG.map((entry) => entry.name));
 
 function directivesOf(content: string): DirectiveNode[] {
