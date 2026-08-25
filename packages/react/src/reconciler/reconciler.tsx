@@ -16,10 +16,18 @@ interface GridCellDef {
   mountAliases?: string[];
 }
 
+/**
+ * Directives the reconciler renders itself instead of resolving through the component
+ * registry. `grid` is a layout container: it owns cell geometry and the mount protocol,
+ * so it never reaches a registry component.
+ */
+export const LAYOUT_DIRECTIVES = ['grid'] as const;
+
 interface GridEntry {
   kind: 'grid';
   key: string;
   id: string;
+  title?: string;
   rows: number;
   columns: number;
   cells: GridCellDef[];
@@ -328,9 +336,9 @@ function shouldRenderDirectiveNode(
 }
 
 function renderGridEntry(entry: GridEntry): React.ReactNode {
-  return (
+  const grid = (
     <section
-      key={entry.key}
+      key={`${entry.key}-grid`}
       className="texo-grid-layout"
       style={{
         ...themeToStyle(entry.theme),
@@ -363,6 +371,19 @@ function renderGridEntry(entry: GridEntry): React.ReactNode {
       })}
     </section>
   );
+
+  if (!entry.title) {
+    return grid;
+  }
+
+  return (
+    <section key={entry.key} className="texo-grid-block">
+      <h3 className="texo-grid-title" style={{ margin: '0 0 8px' }}>
+        {entry.title}
+      </h3>
+      {grid}
+    </section>
+  );
 }
 
 function renderRootWithMounting(
@@ -391,23 +412,6 @@ function renderRootWithMounting(
     const theme = pendingLocalTheme;
     pendingLocalTheme = null;
     return theme;
-  };
-
-  const reindexRootUiMapFrom = (start: number): void => {
-    if (start < 0) {
-      return;
-    }
-    for (let index = start; index < entries.length; index += 1) {
-      const entry = entries[index];
-      if (entry.kind !== 'node') {
-        continue;
-      }
-      for (const [uiId, mappedIndex] of rootNodeIndexByUiId.entries()) {
-        if (mappedIndex === index) {
-          rootNodeIndexByUiId.set(uiId, index);
-        }
-      }
-    }
   };
 
   const removeRootNodeByUiId = (uiId: string): void => {
@@ -494,6 +498,7 @@ function renderRootWithMounting(
       const rows = asNumber(node.attributes.rows, 1);
       const columns = asNumber(node.attributes.columns, 2);
       const gridId = asString(node.attributes.id) ?? `grid-${gridCount}`;
+      const gridTitle = asString(node.attributes.title);
       const cells = parseGridCells(gridId, node.attributes, rows, columns);
       const mountedByCellId = new Map<string, MountedNodeEntry[]>();
       cells.forEach((cell) => {
@@ -506,6 +511,7 @@ function renderRootWithMounting(
         kind: 'grid',
         key: node.id,
         id: gridId,
+        title: gridTitle,
         rows,
         columns,
         cells,

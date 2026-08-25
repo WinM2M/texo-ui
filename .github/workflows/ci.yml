@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` from the lockfile on a clean checkout — this is the state that was
+      # broken for six months because nothing ever exercised it.
+      - run: npm ci
+
+      - run: npm run lint
+
+      # Type-checks sources AND tests; the per-package build configs only cover src/.
+      - run: npm run typecheck
+
+      # Builds every workspace in dependency order; a package whose types fail to emit
+      # breaks the packages downstream of it, so this must run on a clean tree.
+      - run: npm run build
+
+      - run: npm run test:coverage

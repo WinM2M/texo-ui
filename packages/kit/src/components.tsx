@@ -163,38 +163,6 @@ export function TexoStack(props: Record<string, unknown>): React.ReactElement {
   );
 }
 
-export function TexoGrid(props: Record<string, unknown>): React.ReactElement {
-  const columns = Math.max(1, Math.floor(asNumber(props.columns, 2)));
-  const title = asString(props.title);
-  return (
-    <section style={shellStyle}>
-      {title ? <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3> : null}
-      <div
-        style={{
-          display: 'grid',
-          gap: 'var(--texo-theme-grid-gap, 8px)',
-          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-        }}
-      >
-        {Array.from({ length: columns }).map((_, index) => (
-          <div
-            key={`grid-cell-${index}`}
-            style={{
-              border: '1px dashed #cbd5e1',
-              borderRadius: 'var(--texo-theme-radius, 8px)',
-              minHeight: 48,
-              padding: 'var(--texo-theme-cell-padding, 8px)',
-              color: 'var(--texo-theme-foreground, #0f172a)',
-            }}
-          >
-            Cell {index + 1}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function TexoRect(props: Record<string, unknown>): React.ReactElement {
   const width = Math.max(40, asNumber(props.width, 220));
   const height = Math.max(24, asNumber(props.height, 120));

@@ -17,7 +17,7 @@ import {
   type PlannerMessage,
   type PlannerProviderId,
 } from '../utils/planner-providers';
-import { scenariosByCategory } from '../scenarios';
+import { allScenarios } from '../scenarios';
 
 const LAB_PREFS_KEY = 'texo.lab.preferences.v1';
 const LAB_SPLIT_WIDTH_KEY = 'texo.lab.split-width.v1';
@@ -275,7 +275,7 @@ export function LabPage(): JSX.Element {
   });
 
   const provider = plannerProviders[providerId];
-  const casualExamples = useMemo(() => scenariosByCategory('casual'), []);
+  const promptExamples = useMemo(() => allScenarios, []);
   const showProgressRendering = useMemo(() => prompt.includes('과정 표시'), [prompt]);
 
   const providerModelOptions = useMemo<ProviderModelOption[]>(() => {
@@ -924,7 +924,7 @@ export function LabPage(): JSX.Element {
 
           {activeBottomTab === 'examples' ? (
             <div className="lab-example-grid">
-              {casualExamples.map((scenario) => (
+              {promptExamples.map((scenario) => (
                 <button
                   key={scenario.id}
                   type="button"
