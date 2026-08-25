@@ -2,6 +2,7 @@ import type { ASTNode, RecoveryEvent, RootNode } from '@texo-ui/core';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useTexoAction } from '../hooks';
 import { useTexoStream } from '../hooks/use-texo-stream';
+import { injectBaseStyles } from '../styles/base-styles';
 import { createRegistry, type ComponentRegistry } from '../registry';
 import { reconcile } from '../reconciler';
 import type { FallbackProps } from '../reconciler/types';
@@ -34,6 +35,12 @@ export interface TexoRendererProps {
   style?: React.CSSProperties;
   onAction?: (action: TexoAction) => void;
   onError?: (error: RecoveryEvent) => void;
+  /**
+   * Injects the baseline stylesheet into the document head once. Set false when you ship
+   * your own styling for `.texo-*`, or when rendering into a shadow root that injects it
+   * itself (as `@texo-ui/standalone` does).
+   */
+  injectBaseStyles?: boolean;
 }
 
 function trimLeadingNodesBeforeFirstDirective(root: RootNode): RootNode {
@@ -65,6 +72,13 @@ export function TexoRenderer(props: TexoRendererProps): React.ReactElement {
   const actionHandlerRef = useRef<TexoRendererProps['onAction']>(props.onAction);
   const errorHandlerRef = useRef<TexoRendererProps['onError']>(props.onError);
   const lastReportedErrorRef = useRef<RecoveryEvent | null>(null);
+
+  useEffect(() => {
+    if (props.injectBaseStyles === false) {
+      return;
+    }
+    injectBaseStyles();
+  }, [props.injectBaseStyles]);
 
   useEffect(() => {
     if (typeof props.content === 'string') {

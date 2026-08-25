@@ -34,6 +34,19 @@ describe('standalone drop-in bundle', () => {
     expect(typeof texo?.init).toBe('function');
   });
 
+  it('exposes the primer and catalog a page needs to talk to a model', () => {
+    // Without these the bundle can render a stream but cannot obtain one: the primer is
+    // what teaches a model the directive syntax, and it lives in @texo-ui/core.
+    const texo = (globalThis as unknown as {
+      Texo: { primer?: string; catalog?: Array<{ name: string }> };
+    }).Texo;
+
+    expect(typeof texo.primer).toBe('string');
+    expect(texo.primer).toContain(':>');
+    expect(Array.isArray(texo.catalog)).toBe(true);
+    expect(texo.catalog?.map((entry) => entry.name)).toContain('button');
+  });
+
   it('renders a stream into the host using the built-in primitives', async () => {
     const host = document.createElement('div');
     host.id = 'texo-root';

@@ -1,7 +1,8 @@
 import React from 'react';
 import { TexoRenderer, createRegistry, type TexoAction } from '@texo-ui/react';
 import type { RecoveryEvent } from '@texo-ui/core';
-import { createBuiltInComponents } from '@texo-ui/kit';
+import { TEXO_STREAM_PRIMER } from '@texo-ui/core';
+import { BUILTIN_COMPONENT_CATALOG, createBuiltInComponents } from '@texo-ui/kit';
 import { wrapVanillaComponent, type ComponentRenderFunction } from './adapters/vanilla-adapter';
 import { TexoEventBus } from './event-bus';
 import { TexoShadowHost } from './shadow-host';
@@ -18,6 +19,7 @@ function renderWithContent(
     <TexoRenderer
       content={content}
       registry={registry}
+      injectBaseStyles={false}
       streamOptions={{ recovery: options?.recovery }}
       onAction={(payload): void => {
         eventBus?.emit('action', payload);
@@ -84,9 +86,14 @@ function createTexoInstance(
   return instance;
 }
 
-export function createTexoGlobal(version = '0.0.1'): TexoGlobal {
+export function createTexoGlobal(version = '0.1.0'): TexoGlobal {
   return {
     version,
+    // A page that talks to a model directly needs the system prompt that teaches the
+    // directive syntax, and the catalog it is derived from. Without them the drop-in
+    // bundle can render a stream but cannot obtain one.
+    primer: TEXO_STREAM_PRIMER,
+    catalog: BUILTIN_COMPONENT_CATALOG,
     init(selector: string | HTMLElement, options?: TexoInitOptions): TexoInstance {
       return createTexoInstance(selector, options);
     },

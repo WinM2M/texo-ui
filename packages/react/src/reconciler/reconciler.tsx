@@ -206,6 +206,12 @@ function themeToStyle(tokens: ThemeTokens): React.CSSProperties {
   if (tokens.foreground) {
     style.color = tokens.foreground;
   }
+  // A preset named `midnight-dark` has to paint its own surface. Setting only the
+  // foreground leaves light text on whatever the host page happens to be, which is how
+  // dark presets used to render as invisible text.
+  if (tokens.background) {
+    style.background = tokens.background;
+  }
   return style;
 }
 

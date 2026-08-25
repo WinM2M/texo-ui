@@ -11,6 +11,8 @@ if (typeof globalThis !== 'undefined') {
 // exports so `Texo.init(...)` works either way.
 export const init = texoGlobal.init;
 export const version = texoGlobal.version;
+export const primer = texoGlobal.primer;
+export const catalog = texoGlobal.catalog;
 
 export * from './adapters/vanilla-adapter';
 export * from './event-bus';
