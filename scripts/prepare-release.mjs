@@ -9,6 +9,11 @@ const REPO = 'https://github.com/WinM2M/texo-ui';
 
 const PACKAGES = ['core', 'react', 'kit', 'standalone', 'data-adapter'];
 
+// Workspaces outside packages/ that consume the internal packages. Their ranges have to
+// move too, or `npm ci` cannot satisfy them locally and goes to the registry for a
+// version that does not exist there.
+const CONSUMERS = ['examples/playground'];
+
 const KEYWORDS = {
   core: ['llm', 'streaming', 'parser', 'generative-ui', 'markdown', 'ast', 'texo'],
   react: ['llm', 'generative-ui', 'react', 'streaming', 'renderer', 'texo'],
@@ -73,4 +78,20 @@ for (const name of PACKAGES) {
 
   writeFileSync(path, JSON.stringify(ordered, null, 2) + '\n');
   console.log(`${pkg.name} -> ${VERSION}`);
+}
+
+for (const dir of CONSUMERS) {
+  const path = `${dir}/package.json`;
+  const pkg = JSON.parse(readFileSync(path, 'utf8'));
+  let touched = 0;
+  for (const field of ['dependencies', 'devDependencies']) {
+    for (const dep of Object.keys(pkg[field] ?? {})) {
+      if (dep.startsWith('@texo-ui/')) {
+        pkg[field][dep] = `^${VERSION}`;
+        touched += 1;
+      }
+    }
+  }
+  writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+  console.log(`${pkg.name}: ${touched} internal ranges -> ^${VERSION}`);
 }

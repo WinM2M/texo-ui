@@ -10,10 +10,10 @@
     "serve": "vite build && npx serve dist -s -l 3000"
   },
   "dependencies": {
-    "@texo-ui/core": "^0.0.1",
-    "@texo-ui/kit": "^0.0.1",
-    "@texo-ui/data-adapter": "^0.0.1",
-    "@texo-ui/react": "^0.0.1",
+    "@texo-ui/core": "^0.1.0",
+    "@texo-ui/kit": "^0.1.0",
+    "@texo-ui/data-adapter": "^0.1.0",
+    "@texo-ui/react": "^0.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1"
