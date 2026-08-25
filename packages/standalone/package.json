@@ -6,7 +6,7 @@
   "module": "dist/texo.iife.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && tsc -p tsconfig.types.json",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint \"src/**/*.{ts,tsx}\""
   },
@@ -14,9 +14,24 @@
     "@texo-ui/core": "^0.0.1",
     "@texo-ui/react": "^0.0.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "@texo-ui/kit": "^0.0.1"
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/texo.iife.js",
+      "require": "./dist/texo.umd.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "unpkg": "dist/texo.iife.js",
+  "jsdelivr": "dist/texo.iife.js",
+  "browser": "dist/texo.iife.js"
 }

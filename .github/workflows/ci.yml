@@ -34,3 +34,9 @@ jobs:
       - run: npm run build
 
       - run: npm run test:coverage
+
+      # The drop-in bundle and the published playground are committed under docs/; if a
+      # source change makes them stale, say so here rather than shipping a stale demo.
+      - run: npm run publish:web
+      - name: docs/ is in sync with the sources
+        run: git diff --exit-code -- docs/

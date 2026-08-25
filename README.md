@@ -116,33 +116,47 @@ function ChatInterface({ stream }) {
 ```
 
 ### 3. Integration: Standalone (CDN / Legacy Web)
-You can use Texo without a build step (like webpack/vite). Just drop a script tag.
+
+No build step, no bundler, no npm install — one script tag. This is the form to paste into
+JSFiddle, CodePen, or any plain HTML page. The bundle is self-contained (React and the
+built-in primitives are inside it, ~92 kB gzipped).
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@texo-ui/standalone@latest/dist/texo.iife.js"></script>
+<!-- served straight from this repo, no npm release required -->
+<script src="https://cdn.jsdelivr.net/gh/WinM2M/texo-ui@main/docs/cdn/texo.min.js"></script>
 
 <div id="texo-root"></div>
 
 <script>
-  // 3. Initialize (jQuery-style)
-  const ui = Texo.init('#texo-root');
+  var ui = Texo.init('#texo-root');
 
-  // 4. Stream data from LLM (Push text chunk by chunk)
-  llmSource.on('data', (chunk) => {
-    ui.stream(chunk); 
-  });
+  // Push text as the LLM produces it; the UI builds up as it arrives.
+  ui.stream(':> theme\n - preset: "midnight-dark"\n\n');
+  ui.stream(':> label\n - text: "Monthly cost: $1,240"\n\n');
+  ui.stream(':> button\n - label: "Open breakdown"\n - action: "open"\n\n');
+  ui.end();
 
-  // 5. Handle User Interaction (Bi-directional)
-  // When user clicks a button in the generated UI, it simulates a chat input
-  ui.on('action', (payload) => {
-    console.log('User Action:', payload); 
-    // e.g. { type: 'submit', value: 'Confirm Purchase' }
-    
-    // Send back to Chat Interface or LLM
-    chatInput.value = payload.value;
+  // Interactions come back out as actions you can feed to the model.
+  ui.on('action', function (action) {
+    console.log('User Action:', action); // { type: 'open', directive: 'button', value: {...} }
   });
 </script>
 ```
+
+Other ways to load the same bundle:
+
+| Source | URL |
+|---|---|
+| jsDelivr, from this repo | `https://cdn.jsdelivr.net/gh/WinM2M/texo-ui@main/docs/cdn/texo.min.js` |
+| GitHub Pages | `https://winm2m.github.io/texo-ui/cdn/texo.min.js` |
+| npm (once released) | `https://cdn.jsdelivr.net/npm/@texo-ui/standalone` |
+
+Live example: **https://winm2m.github.io/texo-ui/try.html**
+
+Instance API: `stream(chunk)`, `end()`, `reset()`, `render(content)`, `on(event, fn)`,
+`off(event, fn)`, `registerComponent(name, renderFn)`, `addStyle(css)`, `destroy()`.
+Events are `action`, `error` and `ready`. Rendering happens inside a shadow root, so the
+host page's CSS cannot leak in.
 
 ## Directory Structure
 

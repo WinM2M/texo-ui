@@ -9,6 +9,13 @@ export default [
   },
   js.configs.recommended,
   {
+    // Repo tooling runs on Node, not in a browser.
+    files: ['**/*.mjs', 'scripts/**/*.js'],
+    languageOptions: {
+      globals: { console: 'readonly', process: 'readonly', URL: 'readonly' },
+    },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parser,

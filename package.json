@@ -13,7 +13,9 @@
     "clean": "rm -rf node_modules packages/*/node_modules",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p tsconfig.typecheck.json",
-    "publish:playground": "npm run build -w @texo-ui/playground && rm -rf docs/playground && cp -r examples/playground/dist docs/playground"
+    "publish:playground": "npm run build -w @texo-ui/playground && rm -rf docs/playground && cp -r examples/playground/dist docs/playground",
+    "publish:cdn": "npm run build -w @texo-ui/standalone && node ./scripts/publish-cdn.mjs",
+    "publish:web": "npm run publish:playground && npm run publish:cdn"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
