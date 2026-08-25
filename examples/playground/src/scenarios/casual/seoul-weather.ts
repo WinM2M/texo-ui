@@ -6,6 +6,9 @@ export const seoulWeatherScenario: Scenario = {
   systemPrompt: '내일 서울 날씨를 조사한 후, texo ui 를 이용하여 표현, 다크테마',
   content: `Tomorrow weather in Seoul
 
+:> theme
+ - preset: "midnight-dark"
+
 :> grid
  - id: "weather-board"
  - rows: 2

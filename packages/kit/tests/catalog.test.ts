@@ -1,12 +1,12 @@
 import { TexoPipeline } from '@texo-ui/core';
 import type { ASTNode, DirectiveNode } from '@texo-ui/core';
-import { LAYOUT_DIRECTIVES } from '@texo-ui/react';
+import { RECONCILER_DIRECTIVES } from '@texo-ui/react';
 import { describe, expect, it } from 'vitest';
 import { BUILTIN_COMPONENT_CATALOG } from '../src/catalog';
 import { createBuiltInComponents } from '../src/registry';
 
 const registry = createBuiltInComponents();
-const resolvable = new Set([...Object.keys(registry), ...LAYOUT_DIRECTIVES]);
+const resolvable = new Set([...Object.keys(registry), ...RECONCILER_DIRECTIVES]);
 
 function parseDirectives(content: string): DirectiveNode[] {
   const pipeline = new TexoPipeline();

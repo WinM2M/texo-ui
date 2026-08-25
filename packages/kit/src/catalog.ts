@@ -2,6 +2,37 @@ import type { CatalogComponent } from './types';
 
 export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
   {
+    name: 'theme',
+    summary:
+      'Sets theme tokens on a scope. Renders nothing itself; it restyles the directives around it.',
+    props: [
+      {
+        name: 'preset',
+        type: 'slate-light|paper-warm|mint-soft|ocean-breeze|sunset-soft|rose-quiet|violet-ink|graphite-dark|midnight-dark|forest-dark|amber-dark|mono-clean',
+        description: 'Named token bundle to apply.',
+      },
+      {
+        name: 'scope',
+        type: 'global|local',
+        description: 'Apply to the whole stream (default) or to the next directive / mount target.',
+      },
+      {
+        name: 'background',
+        type: 'string',
+        description: 'Surface colour token override.',
+      },
+      {
+        name: 'foreground',
+        type: 'string',
+        description: 'Text colour token override.',
+      },
+      { name: 'accent', type: 'string', description: 'Primary action colour token override.' },
+      { name: 'line', type: 'string', description: 'Border colour token override.' },
+      { name: 'radius', type: 'string', description: 'Corner radius token override.' },
+    ],
+    example: ':> theme\n - preset: "midnight-dark"',
+  },
+  {
     name: 'stack',
     summary: 'Linear layout container for arranging child blocks.',
     props: [

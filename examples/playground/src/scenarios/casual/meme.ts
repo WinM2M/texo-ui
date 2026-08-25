@@ -7,6 +7,9 @@ export const memeScenario: Scenario = {
     'Generate a meme caption workflow using input, button, table. Apply a dark-theme preset.',
   content: `Caption board
 
+:> theme
+ - preset: "midnight-dark"
+
 :> stack
  - title: "Meme Caption Builder"
  - direction: "column"

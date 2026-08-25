@@ -7,6 +7,9 @@ export const tournamentScenario: Scenario = {
     'Generate a lunch vote flow with stack, input, button, table. Apply a dark-theme preset.',
   content: `Lunch decision round
 
+:> theme
+ - preset: "midnight-dark"
+
 :> stack
  - title: "Lunch Tournament Lite"
  - direction: "column"
