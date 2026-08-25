@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { DirectiveNode } from '../src';
 import { TexoPipeline, parseDirectiveHeader } from '../src';
 
 function getDirectives(input: string) {
@@ -13,7 +14,7 @@ describe('directive parsing', () => {
   it('parses basic directive node', () => {
     const directives = getDirectives('::: card\ntitle: "hi"\n:::\n');
     expect(directives).toHaveLength(1);
-    expect((directives[0] as any).name).toBe('card');
+    expect((directives[0] as DirectiveNode).name).toBe('card');
   });
 
   it('parses inline attributes in header', () => {
@@ -24,33 +25,33 @@ describe('directive parsing', () => {
 
   it('supports nested yaml body', () => {
     const directives = getDirectives('::: card\nnested:\n  a: 1\n:::\n');
-    const directive = directives[0] as any;
+    const directive = directives[0] as DirectiveNode;
     expect(directive.attributes).toMatchObject({ nested: { a: 1 } });
   });
 
   it('keeps streaming then auto-closes on end', () => {
     const pipeline = new TexoPipeline();
     pipeline.push('::: card\ntitle: "x"\n');
-    let directive = pipeline.getAST().children.find((n) => n.type === 'directive') as any;
+    let directive = pipeline.getAST().children.find((n) => n.type === 'directive') as DirectiveNode;
     expect(directive.status).toBe('streaming');
     pipeline.end();
-    directive = pipeline.getAST().children.find((n) => n.type === 'directive') as any;
+    directive = pipeline.getAST().children.find((n) => n.type === 'directive') as DirectiveNode;
     expect(directive.status).toBe('complete');
   });
 
   it('updates attributes incrementally with valid yaml lines', () => {
     const pipeline = new TexoPipeline();
     pipeline.push('::: card\na: 1\n');
-    let directive = pipeline.getAST().children.find((n) => n.type === 'directive') as any;
+    let directive = pipeline.getAST().children.find((n) => n.type === 'directive') as DirectiveNode;
     expect(directive.attributes).toMatchObject({ a: 1 });
     pipeline.push('b: 2\n');
-    directive = pipeline.getAST().children.find((n) => n.type === 'directive') as any;
+    directive = pipeline.getAST().children.find((n) => n.type === 'directive') as DirectiveNode;
     expect(directive.attributes).toMatchObject({ a: 1, b: 2 });
   });
 
   it('handles empty directive', () => {
     const directives = getDirectives('::: card\n:::\n');
-    expect((directives[0] as any).attributes).toMatchObject({ id: 'directive-1' });
+    expect((directives[0] as DirectiveNode).attributes).toMatchObject({ id: 'directive-1' });
   });
 
   it('validates directive name format', () => {
@@ -65,7 +66,7 @@ describe('directive parsing', () => {
 
   it('parses compact :> header with size and color suffix', () => {
     const directives = getDirectives(':> button 100x50 red\n - label: "Go"\ntext\n');
-    const directive = directives[0] as any;
+    const directive = directives[0] as DirectiveNode;
     expect(directive.name).toBe('button');
     expect(directive.attributes).toMatchObject({
       id: 'directive-1',

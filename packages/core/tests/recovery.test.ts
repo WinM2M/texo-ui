@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { DirectiveNode } from '../src';
 import {
   RecoveryManager,
   TexoPipeline,
@@ -12,7 +13,7 @@ describe('RecoveryManager and safe pipeline', () => {
     const pipeline = new TexoPipeline();
     pipeline.push('::: card\na: 1\n');
     pipeline.end();
-    const directive = pipeline.getAST().children.find((n) => n.type === 'directive') as any;
+    const directive = pipeline.getAST().children.find((n) => n.type === 'directive') as DirectiveNode;
     expect(directive.status).toBe('complete');
     expect(directive.meta?.recovered).toBe(true);
   });
@@ -26,7 +27,7 @@ describe('RecoveryManager and safe pipeline', () => {
     const pipeline = new TexoPipeline();
     pipeline.push('::: invalid name\na: 1\n:::\n');
     pipeline.end();
-    const directive = pipeline.getAST().children.find((n) => n.type === 'directive') as any;
+    const directive = pipeline.getAST().children.find((n) => n.type === 'directive') as DirectiveNode;
     expect(directive.name).toBe('unknown');
     expect(directive.meta?.recovered).toBe(true);
   });
@@ -35,7 +36,7 @@ describe('RecoveryManager and safe pipeline', () => {
     const pipeline = new TexoPipeline();
     pipeline.push('::: card\ninner: "::: x"\n:::\n');
     pipeline.end();
-    const directive = pipeline.getAST().children.find((n) => n.type === 'directive') as any;
+    const directive = pipeline.getAST().children.find((n) => n.type === 'directive') as DirectiveNode;
     expect(directive.rawBody.includes('::: x')).toBe(true);
   });
 
