@@ -21,7 +21,16 @@
 </script>
 ```
 
-Live example: **https://winm2m.github.io/texo-ui/try.html**
+Try it without cloning anything:
+
+| | |
+|---|---|
+| **JSFiddle** | https://jsfiddle.net/YoungjuneKwon/n4tc7kfo/5/ |
+| Live example | https://winm2m.github.io/texo-ui/try.html |
+| Driven by a real model | https://winm2m.github.io/texo-ui/live.html |
+
+The fiddle runs a canned stream by default. Put a key in `API_KEY` at the top of the
+JavaScript panel and it calls a live model instead — same code path, same renderer.
 
 ## Why a bundle like this exists
 
@@ -67,7 +76,9 @@ Events: `action`, `error`, `ready`.
 
 | Source | URL |
 |---|---|
-| npm via jsDelivr | `https://cdn.jsdelivr.net/npm/@texo-ui/standalone` |
+| jsDelivr (npm) | `https://cdn.jsdelivr.net/npm/@texo-ui/standalone` |
+| unpkg | `https://unpkg.com/@texo-ui/standalone` |
+| Pinned to a version | `https://cdn.jsdelivr.net/npm/@texo-ui/standalone@0.1.0/dist/texo.iife.js` |
 | Straight from the repo | `https://cdn.jsdelivr.net/gh/WinM2M/texo-ui@main/docs/cdn/texo.min.js` |
 | GitHub Pages | `https://winm2m.github.io/texo-ui/cdn/texo.min.js` |
 

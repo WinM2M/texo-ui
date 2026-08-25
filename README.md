@@ -40,25 +40,27 @@ graph LR
     C -->|CDN| F[Standalone Widget]
 ```
 
-## Usage Preview
+## Install
 
-## Install (npm)
-
-Install Texo packages from npm:
+All five packages are on npm under the `@texo-ui` scope.
 
 ```bash
+# Web app: the renderer plus the built-in component vocabulary
+npm install @texo-ui/react @texo-ui/kit
+
+# Parser only, if you are writing your own renderer
 npm install @texo-ui/core
 ```
 
-Related packages:
+| Package | What it is |
+|---|---|
+| [`@texo-ui/core`](https://www.npmjs.com/package/@texo-ui/core) | Stream-first parser and AST. Renderer independent. |
+| [`@texo-ui/react`](https://www.npmjs.com/package/@texo-ui/react) | React renderer, registry, hooks, baseline styles. |
+| [`@texo-ui/kit`](https://www.npmjs.com/package/@texo-ui/kit) | The primitives a model may invoke, plus the catalog that teaches them. |
+| [`@texo-ui/standalone`](https://www.npmjs.com/package/@texo-ui/standalone) | Everything in one script tag, for pages with no build step. |
+| [`@texo-ui/data-adapter`](https://www.npmjs.com/package/@texo-ui/data-adapter) | Bring-your-own-storage drivers: local, Google Drive, Notion, HTTP. |
 
-```bash
-npm install @texo-ui/react @texo-ui/kit
-```
-
-Package reference:
-
-- `@texo-ui/core`: https://www.npmjs.com/package/@texo-ui/core
+## Usage
 
 ### 1. The Protocol (LLM Output)
 The LLM generates standard Markdown mixed with **UI Directives**. A directive is a single
@@ -122,8 +124,7 @@ JSFiddle, CodePen, or any plain HTML page. The bundle is self-contained (React a
 built-in primitives are inside it, ~92 kB gzipped).
 
 ```html
-<!-- served straight from this repo, no npm release required -->
-<script src="https://cdn.jsdelivr.net/gh/WinM2M/texo-ui@main/docs/cdn/texo.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@texo-ui/standalone"></script>
 
 <div id="texo-root"></div>
 
@@ -147,11 +148,22 @@ Other ways to load the same bundle:
 
 | Source | URL |
 |---|---|
-| jsDelivr, from this repo | `https://cdn.jsdelivr.net/gh/WinM2M/texo-ui@main/docs/cdn/texo.min.js` |
+| jsDelivr (npm) | `https://cdn.jsdelivr.net/npm/@texo-ui/standalone` |
+| unpkg | `https://unpkg.com/@texo-ui/standalone` |
+| Pinned to a version | `https://cdn.jsdelivr.net/npm/@texo-ui/standalone@0.1.0/dist/texo.iife.js` |
+| Straight from this repo | `https://cdn.jsdelivr.net/gh/WinM2M/texo-ui@main/docs/cdn/texo.min.js` |
 | GitHub Pages | `https://winm2m.github.io/texo-ui/cdn/texo.min.js` |
-| npm (once released) | `https://cdn.jsdelivr.net/npm/@texo-ui/standalone` |
 
-Live example: **https://winm2m.github.io/texo-ui/try.html**
+Try it without cloning anything:
+
+| | |
+|---|---|
+| **JSFiddle** | https://jsfiddle.net/YoungjuneKwon/n4tc7kfo/5/ |
+| Live example | https://winm2m.github.io/texo-ui/try.html |
+| Driven by a real model | https://winm2m.github.io/texo-ui/live.html |
+
+The fiddle runs a canned stream by default. Put a key in `API_KEY` at the top of the
+JavaScript panel and it calls a live model instead — same code path, same renderer.
 
 Instance API: `stream(chunk)`, `end()`, `reset()`, `render(content)`, `on(event, fn)`,
 `off(event, fn)`, `registerComponent(name, renderFn)`, `addStyle(css)`, `destroy()`.
