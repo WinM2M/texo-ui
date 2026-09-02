@@ -1,6 +1,6 @@
 {
   "name": "@texo-ui/react",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "React renderer for Texo: reconciles a streaming UI tree into your components.",
   "keywords": [
     "llm",
@@ -48,7 +48,7 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@texo-ui/core": "^0.1.0"
+    "@texo-ui/core": "^0.2.0"
   },
   "publishConfig": {
     "access": "public"

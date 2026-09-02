@@ -1,6 +1,6 @@
 {
   "name": "@texo-ui/kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The built-in Texo component vocabulary, plus the catalog that teaches it to an LLM.",
   "keywords": [
     "llm",
@@ -44,7 +44,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@texo-ui/react": "^0.1.0"
+    "@texo-ui/react": "^0.2.0"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"

@@ -7,6 +7,11 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+/** Single source of truth for the release version: the one the tag check compares against. */
+const EXPECTED_VERSION = JSON.parse(
+  readFileSync(new URL('../packages/core/package.json', import.meta.url), 'utf8'),
+).version
+
 const PACKAGES = ['core', 'data-adapter', 'react', 'kit', 'standalone'];
 const run = (cmd, args, cwd) =>
   execFileSync(cmd, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
@@ -54,7 +59,14 @@ for (const name of PACKAGES) {
   checks.push({ spec, check: 'types file exists', ok: !!pkg.types && existsSync(typesPath) })
   checks.push({ spec, check: 'README shipped', ok: existsSync(join(dir, 'README.md')) })
   checks.push({ spec, check: 'LICENSE shipped', ok: existsSync(join(dir, 'LICENSE')) })
-  checks.push({ spec, check: 'version is 0.1.0', ok: pkg.version === '0.1.0' })
+  // Every publishable package moves in lockstep, and core is the one the release
+  // workflow's tag check reads. Hardcoding the number here meant this verifier passed
+  // the release it was written for and failed every one after it.
+  checks.push({
+    spec,
+    check: `version is ${EXPECTED_VERSION}`,
+    ok: pkg.version === EXPECTED_VERSION,
+  })
   checks.push({ spec, check: 'licence is MIT', ok: pkg.license === 'MIT' })
 
   for (const [cond, target] of Object.entries(pkg.exports?.['.'] ?? {})) {

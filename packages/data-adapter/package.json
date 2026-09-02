@@ -1,6 +1,6 @@
 {
   "name": "@texo-ui/data-adapter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Bring-your-own-storage drivers for Texo: local, Google Drive, Notion, HTTP.",
   "keywords": [
     "byos",

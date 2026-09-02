@@ -34,6 +34,18 @@ describe('standalone drop-in bundle', () => {
     expect(typeof texo?.init).toBe('function');
   });
 
+  it('reports the version of the artifact it was built from', () => {
+    // `Texo.version` is the only handle a CDN consumer has on what they actually loaded.
+    // It used to be a hardcoded default that no build ever replaced, so it would have
+    // announced 0.1.0 from every release after the first.
+    const texo = (globalThis as unknown as { Texo: { version?: string } }).Texo;
+    const pkg = JSON.parse(
+      readFileSync(resolve(process.cwd(), 'packages/standalone/package.json'), 'utf8'),
+    ) as { version: string };
+
+    expect(texo.version).toBe(pkg.version);
+  });
+
   it('exposes the primer and catalog a page needs to talk to a model', () => {
     // Without these the bundle can render a stream but cannot obtain one: the primer is
     // what teaches a model the directive syntax, and it lives in @texo-ui/core.

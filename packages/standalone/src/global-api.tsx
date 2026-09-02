@@ -86,7 +86,16 @@ function createTexoInstance(
   return instance;
 }
 
-export function createTexoGlobal(version = '0.1.0'): TexoGlobal {
+/**
+ * Replaced at build time by the standalone package version (see vite.config.ts).
+ * The fallback only applies when the module is consumed outside that build, as the
+ * tests do.
+ */
+declare const __TEXO_VERSION__: string | undefined;
+
+export function createTexoGlobal(
+  version = typeof __TEXO_VERSION__ === 'string' ? __TEXO_VERSION__ : '0.0.0-dev',
+): TexoGlobal {
   return {
     version,
     // A page that talks to a model directly needs the system prompt that teaches the
