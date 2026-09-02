@@ -82,6 +82,75 @@ describe('kit primitives render through the real parse -> AST -> reconcile path'
   });
 });
 
+describe('content primitives', () => {
+  it('text renders prose as a paragraph by default', () => {
+    renderStream(':> text\n - text: "Three planets are retrograde."\n');
+    const node = screen.getByText('Three planets are retrograde.');
+    expect(node.tagName).toBe('P');
+  });
+
+  it('text maps each variant onto its heading level', () => {
+    renderStream(':> text\n - text: "Natal chart"\n - variant: "h2"\n');
+    expect(screen.getByText('Natal chart').tagName).toBe('H2');
+  });
+
+  it('text falls back to body copy when the variant is not one we document', () => {
+    renderStream(':> text\n - text: "unknown variant"\n - variant: "display"\n');
+    expect(screen.getByText('unknown variant').tagName).toBe('P');
+  });
+
+  it('text renders inline bold, italic and code', () => {
+    renderStream(
+      ':> text\n - text: "A **bold** and *soft* `token` line."\n',
+    );
+    expect(screen.getByText('bold').tagName).toBe('STRONG');
+    expect(screen.getByText('soft').tagName).toBe('EM');
+    expect(screen.getByText('token').tagName).toBe('CODE');
+  });
+
+  it('card renders its title, body and footer', () => {
+    renderStream(
+      ':> card\n - title: "Natal chart"\n - text: "Sun in Aries."\n - footer: "Updated today"\n',
+    );
+    expect(screen.getByText('Natal chart').tagName).toBe('H3');
+    expect(screen.getByText('Sun in Aries.')).toBeTruthy();
+    expect(screen.getByText('Updated today')).toBeTruthy();
+  });
+
+  it('card renders nothing when it carries no copy', () => {
+    renderStream(':> card\n - variant: "elevated"\n');
+    expect(document.querySelector('.texo-directive--card section')).toBeNull();
+  });
+
+  it('divider renders a rule, and a labelled divider shows its caption', () => {
+    renderStream(':> divider\n');
+    expect(document.querySelector('hr')).toBeTruthy();
+
+    cleanup();
+    renderStream(':> divider\n - label: "Today"\n');
+    expect(screen.getByText('Today')).toBeTruthy();
+    expect(screen.getByRole('separator')).toBeTruthy();
+  });
+
+  it('image renders a captioned image from an https source', () => {
+    renderStream(
+      ':> image\n - src: "https://example.com/wheel.png"\n - alt: "Natal wheel"\n - caption: "Generated today"\n',
+    );
+    const img = screen.getByRole('img', { name: 'Natal wheel' }) as HTMLImageElement;
+    expect(img.getAttribute('src')).toBe('https://example.com/wheel.png');
+    expect(screen.getByText('Generated today')).toBeTruthy();
+  });
+
+  it.each([
+    ['javascript:alert(1)'],
+    ['vbscript:msgbox(1)'],
+    ['data:text/html;base64,PHNjcmlwdD4='],
+  ])('image drops the unsafe source %s', (src) => {
+    renderStream(`:> image\n - src: "${src}"\n - alt: "unsafe"\n`);
+    expect(document.querySelector('img')).toBeNull();
+  });
+});
+
 describe('directive resolution rules', () => {
   it('accepts the texo- prefixed alias', () => {
     renderStream(':> texo-label\n - text: "aliased"\n');

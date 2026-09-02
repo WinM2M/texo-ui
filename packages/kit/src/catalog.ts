@@ -43,6 +43,23 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
     example: ':> stack\n - direction: "column"\n - gap: 12\n - title: "Profile"',
   },
   {
+    name: 'card',
+    summary:
+      'A self-contained surface with a title, body and footer. Directives do not nest, so a card carries its own copy rather than wrapping other directives; use grid + mount to compose.',
+    props: [
+      { name: 'title', type: 'string', description: 'Heading shown at the top of the card.' },
+      { name: 'text', type: 'string', description: 'Body copy.' },
+      { name: 'footer', type: 'string', description: 'Muted line under the body.' },
+      {
+        name: 'variant',
+        type: 'plain|outlined|elevated|accent',
+        description: 'Surface treatment. Defaults to outlined.',
+      },
+    ],
+    example:
+      ':> card\n - title: "Natal chart"\n - text: "Sun in Aries, Moon in Pisces."\n - variant: "elevated"',
+  },
+  {
     name: 'button',
     summary: 'Action trigger button that emits an action payload.',
     props: [
@@ -75,7 +92,8 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
   },
   {
     name: 'label',
-    summary: 'Plain text output for captions, helper copy, or status messages.',
+    summary:
+      'A single emphasised centred line, for a status or a stat. Use text for anything longer than one line.',
     props: [
       {
         name: 'text',
@@ -85,6 +103,57 @@ export const BUILTIN_COMPONENT_CATALOG: CatalogComponent[] = [
       },
     ],
     example: ':> label\n - text: "Last sync: 2 minutes ago"',
+  },
+  {
+    name: 'text',
+    summary:
+      'Prose. Headings, body copy and captions, with **bold**, *italic* and `code` inline emphasis.',
+    props: [
+      { name: 'text', type: 'string', required: true, description: 'Text content to render.' },
+      {
+        name: 'variant',
+        type: 'h1|h2|h3|h4|h5|body|caption',
+        description: 'Typographic role. Defaults to body.',
+      },
+      {
+        name: 'align',
+        type: 'start|center|end',
+        description: 'Horizontal alignment. Defaults to start.',
+      },
+    ],
+    example:
+      ':> text\n - text: "Your chart is ready. **Three** planets are retrograde."\n - variant: "body"',
+  },
+  {
+    name: 'divider',
+    summary: 'A separating rule, optionally labelled, for splitting a surface into sections.',
+    props: [
+      { name: 'label', type: 'string', description: 'Optional caption shown on the rule.' },
+      {
+        name: 'axis',
+        type: 'horizontal|vertical',
+        description: 'Rule orientation. Defaults to horizontal.',
+      },
+    ],
+    example: ':> divider\n - label: "Today"',
+  },
+  {
+    name: 'image',
+    summary:
+      'An image from a URL. Only http(s), data:image and relative paths are rendered; anything else is dropped.',
+    props: [
+      { name: 'src', type: 'string', required: true, description: 'Image URL.' },
+      { name: 'alt', type: 'string', description: 'Alternative text for assistive technology.' },
+      {
+        name: 'fit',
+        type: 'cover|contain|fill',
+        description: 'How the image fills its box. Defaults to contain.',
+      },
+      { name: 'radius', type: 'number', description: 'Corner radius in pixels.' },
+      { name: 'caption', type: 'string', description: 'Caption rendered under the image.' },
+    ],
+    example:
+      ':> image\n - src: "https://example.com/wheel.png"\n - alt: "Natal chart wheel"\n - caption: "Generated today"',
   },
   {
     name: 'checkbox',

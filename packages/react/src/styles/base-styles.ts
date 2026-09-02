@@ -30,6 +30,18 @@ export const TEXO_BASE_STYLES = `
     padding: 1em;
     margin: 0.75em 0;
   }
+  /*
+   * Content primitives own their own presentation: prose must not sit in a box,
+   * a card already draws its surface, and a rule inside a bordered card is absurd.
+   */
+  .texo-directive--text,
+  .texo-directive--card,
+  .texo-directive--divider,
+  .texo-directive--image {
+    border: 0;
+    padding: 0;
+  }
+  .texo-directive--divider { margin: 0; }
   .texo-grid-title { margin: 0 0 8px; color: inherit; }
   .texo-directive--streaming { opacity: 0.85; animation: texo-pulse 1.4s ease-in-out infinite; }
   .texo-directive-loading {
