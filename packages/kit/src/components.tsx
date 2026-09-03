@@ -971,3 +971,270 @@ export function TexoChart(props: Record<string, unknown>): React.ReactElement {
     </section>
   );
 }
+
+/* ------------------------------------------------------------------ *
+ * Content primitives
+ *
+ * `label` predates these and stays as-is: it is a single emphasised line,
+ * not prose. `text` is the prose primitive the stream format implies —
+ * texo weaves UI *into* narration, so narration needs a first-class home
+ * that can be mounted into a grid cell like anything else.
+ * ------------------------------------------------------------------ */
+
+const INLINE_EMPHASIS = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+
+/**
+ * Renders the inline emphasis an LLM reaches for by reflex — bold, italic, code.
+ *
+ * Deliberately not a markdown parser: pulling one in would cost more bundle than
+ * the whole kit. Block structure is what the stream's own markdown is for.
+ */
+function renderInlineEmphasis(source: string): React.ReactNode {
+  const parts = source.split(INLINE_EMPHASIS).filter((part) => part !== '');
+
+  if (parts.length <= 1) {
+    return source;
+  }
+
+  return parts.map((part, index) => {
+    if (part.length > 4 && part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.length > 2 && part.startsWith('*') && part.endsWith('*')) {
+      return <em key={index}>{part.slice(1, -1)}</em>;
+    }
+    if (part.length > 2 && part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code
+          key={index}
+          style={{
+            background: 'var(--texo-theme-code-background, rgba(127, 127, 127, 0.14))',
+            borderRadius: 4,
+            padding: '0.1em 0.35em',
+            fontSize: '0.92em',
+          }}
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return <React.Fragment key={index}>{part}</React.Fragment>;
+  });
+}
+
+interface TextVariantStyle {
+  tag: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'p';
+  fontSize: number;
+  fontWeight: number;
+  lineHeight: number;
+  opacity?: number;
+}
+
+/** Variant names mirror the A2UI basic catalog so the two vocabularies stay translatable. */
+const TEXT_VARIANTS: Record<string, TextVariantStyle> = {
+  h1: { tag: 'h1', fontSize: 30, fontWeight: 700, lineHeight: 1.25 },
+  h2: { tag: 'h2', fontSize: 24, fontWeight: 700, lineHeight: 1.3 },
+  h3: { tag: 'h3', fontSize: 20, fontWeight: 650, lineHeight: 1.35 },
+  h4: { tag: 'h4', fontSize: 17, fontWeight: 650, lineHeight: 1.4 },
+  h5: { tag: 'h5', fontSize: 15, fontWeight: 650, lineHeight: 1.45 },
+  body: { tag: 'p', fontSize: 15, fontWeight: 400, lineHeight: 1.65 },
+  caption: { tag: 'p', fontSize: 13, fontWeight: 400, lineHeight: 1.5, opacity: 0.72 },
+};
+
+const TEXT_ALIGNMENTS = new Set(['start', 'center', 'end']);
+
+export function TexoText(props: Record<string, unknown>): React.ReactElement {
+  const source = asString(props.text, asString(props.value));
+
+  if (!source) {
+    return <></>;
+  }
+
+  const variant = TEXT_VARIANTS[asString(props.variant, 'body')] ?? TEXT_VARIANTS.body;
+  const requested = asString(props.align, 'start');
+  const align = TEXT_ALIGNMENTS.has(requested) ? requested : 'start';
+  const Tag = variant.tag;
+
+  return (
+    <Tag
+      style={{
+        margin: variant.tag === 'p' ? '0.5em 0' : '0.8em 0 0.4em',
+        color: 'var(--texo-theme-foreground, #0f172a)',
+        fontSize: variant.fontSize,
+        fontWeight: variant.fontWeight,
+        lineHeight: variant.lineHeight,
+        opacity: variant.opacity,
+        textAlign: align as React.CSSProperties['textAlign'],
+      }}
+    >
+      {renderInlineEmphasis(source)}
+    </Tag>
+  );
+}
+
+interface CardVariantStyle {
+  border: string;
+  boxShadow?: string;
+  background?: string;
+  borderInlineStart?: string;
+}
+
+/**
+ * Directives do not nest — the reconciler passes attributes only, and composition
+ * happens through `grid` + `mount`. So a card is a self-contained surface
+ * (title / body / footer), not a wrapper around children.
+ */
+const CARD_VARIANTS: Record<string, CardVariantStyle> = {
+  plain: { border: '1px solid transparent' },
+  outlined: {
+    border: 'var(--texo-theme-border, 1px solid var(--texo-theme-line, #d1d5db))',
+  },
+  elevated: {
+    border: 'var(--texo-theme-border, 1px solid var(--texo-theme-line, #d1d5db))',
+    boxShadow: 'var(--texo-theme-shadow, 0 4px 12px rgba(15, 23, 42, 0.10))',
+  },
+  accent: {
+    border: 'var(--texo-theme-border, 1px solid var(--texo-theme-line, #d1d5db))',
+    borderInlineStart: '4px solid var(--texo-theme-accent, #2563eb)',
+  },
+};
+
+export function TexoCard(props: Record<string, unknown>): React.ReactElement {
+  const title = asString(props.title);
+  const text = asString(props.text, asString(props.body));
+  const footer = asString(props.footer);
+
+  if (!title && !text && !footer) {
+    return <></>;
+  }
+
+  const variant = CARD_VARIANTS[asString(props.variant, 'outlined')] ?? CARD_VARIANTS.outlined;
+
+  return (
+    <section
+      style={{
+        ...variant,
+        borderRadius: 'var(--texo-theme-radius, 12px)',
+        background: variant.background ?? 'var(--texo-theme-background, #ffffff)',
+        color: 'var(--texo-theme-foreground, #0f172a)',
+        paddingBlock: 'var(--texo-theme-paddingY, 10px)',
+        paddingInline: 'var(--texo-theme-paddingX, 15px)',
+      }}
+    >
+      {title ? (
+        <h3 style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 650, lineHeight: 1.35 }}>
+          {renderInlineEmphasis(title)}
+        </h3>
+      ) : null}
+      {text ? (
+        <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6 }}>{renderInlineEmphasis(text)}</p>
+      ) : null}
+      {footer ? (
+        <p style={{ margin: '10px 0 0', fontSize: 13, lineHeight: 1.45, opacity: 0.7 }}>
+          {renderInlineEmphasis(footer)}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+export function TexoDivider(props: Record<string, unknown>): React.ReactElement {
+  const label = asString(props.label);
+  const vertical = asString(props.axis, 'horizontal') === 'vertical';
+  const line = 'var(--texo-theme-line, #d1d5db)';
+
+  if (vertical) {
+    return (
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        style={{
+          width: 1,
+          minHeight: Math.max(16, asNumber(props.height, 48)),
+          alignSelf: 'stretch',
+          background: line,
+        }}
+      />
+    );
+  }
+
+  if (!label) {
+    return (
+      <hr
+        style={{ border: 0, borderTop: `1px solid ${line}`, margin: '14px 0' }}
+      />
+    );
+  }
+
+  return (
+    <div
+      role="separator"
+      aria-orientation="horizontal"
+      style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0' }}
+    >
+      <span style={{ flex: 1, height: 1, background: line }} />
+      <span
+        style={{
+          fontSize: 12,
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+          opacity: 0.65,
+          color: 'var(--texo-theme-foreground, #0f172a)',
+        }}
+      >
+        {label}
+      </span>
+      <span style={{ flex: 1, height: 1, background: line }} />
+    </div>
+  );
+}
+
+/**
+ * Only schemes that cannot execute. The author of this attribute is a language
+ * model, so `javascript:` and friends have to be unreachable by construction.
+ */
+const SAFE_IMAGE_SRC = /^(?:https?:\/\/|data:image\/|\/|\.\/|\.\.\/)/i;
+const IMAGE_FITS = new Set(['cover', 'contain', 'fill']);
+
+export function TexoImage(props: Record<string, unknown>): React.ReactElement {
+  const src = asString(props.src, asString(props.url)).trim();
+  const caption = asString(props.caption);
+
+  if (!SAFE_IMAGE_SRC.test(src)) {
+    return <></>;
+  }
+
+  const requestedFit = asString(props.fit, 'contain');
+  const fit = IMAGE_FITS.has(requestedFit) ? requestedFit : 'contain';
+
+  return (
+    <figure style={{ margin: 0 }}>
+      <img
+        src={src}
+        alt={asString(props.alt)}
+        style={{
+          display: 'block',
+          width: '100%',
+          maxWidth: asNumber(props.width, 0) > 0 ? `${asNumber(props.width, 0)}px` : '100%',
+          height: asNumber(props.height, 0) > 0 ? `${asNumber(props.height, 0)}px` : 'auto',
+          objectFit: fit as React.CSSProperties['objectFit'],
+          borderRadius: asNumber(props.radius, 8),
+          background: 'var(--texo-theme-code-background, rgba(127, 127, 127, 0.08))',
+        }}
+      />
+      {caption ? (
+        <figcaption
+          style={{
+            margin: '6px 0 0',
+            fontSize: 13,
+            lineHeight: 1.45,
+            opacity: 0.7,
+            color: 'var(--texo-theme-foreground, #0f172a)',
+          }}
+        >
+          {renderInlineEmphasis(caption)}
+        </figcaption>
+      ) : null}
+    </figure>
+  );
+}

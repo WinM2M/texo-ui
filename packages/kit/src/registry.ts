@@ -1,14 +1,18 @@
 import type { KitComponent } from './types';
 import {
   TexoButton,
+  TexoCard,
   TexoCheckbox,
   TexoChart,
+  TexoDivider,
+  TexoImage,
   TexoInput,
   TexoLabel,
   TexoRect,
   TexoStack,
   TexoSvg,
   TexoTable,
+  TexoText,
 } from './components';
 
 /**
@@ -24,10 +28,14 @@ import {
 export function createBuiltInComponents(): Record<string, KitComponent> {
   return {
     stack: TexoStack,
+    card: TexoCard,
     button: TexoButton,
     checkbox: TexoCheckbox,
     input: TexoInput,
     label: TexoLabel,
+    text: TexoText,
+    divider: TexoDivider,
+    image: TexoImage,
     table: TexoTable,
     chart: TexoChart,
     rect: TexoRect,
