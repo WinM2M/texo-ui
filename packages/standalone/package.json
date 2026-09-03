@@ -1,6 +1,6 @@
 {
   "name": "@texo-ui/standalone",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Texo in one script tag. Self-contained bundle for CDN and no-build pages.",
   "keywords": [
     "llm",
@@ -49,10 +49,10 @@
     "access": "public"
   },
   "devDependencies": {
-    "@texo-ui/core": "^0.1.0",
-    "@texo-ui/react": "^0.1.0",
+    "@texo-ui/core": "^0.2.0",
+    "@texo-ui/react": "^0.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "@texo-ui/kit": "^0.1.0"
+    "@texo-ui/kit": "^0.2.0"
   }
 }

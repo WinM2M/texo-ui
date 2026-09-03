@@ -4,7 +4,7 @@
 // produces a package that cannot be installed.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const REPO = 'https://github.com/WinM2M/texo-ui';
 
 const PACKAGES = ['core', 'react', 'kit', 'standalone', 'data-adapter'];
